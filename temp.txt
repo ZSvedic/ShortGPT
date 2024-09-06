@@ -1,181 +1,173 @@
---------------------------- First:
-...total time: 1040.05 sec
-Allocated GPU memory before empty_cache: 19,368.2 MB
-Allocated GPU memory after empty_cache: 19,368.2 MB
-Processing chunk of 30 questions...
-...total time: 1180.05 sec
-Allocated GPU memory before empty_cache: 19,368.2 MB
-Allocated GPU memory after empty_cache: 19,368.2 MB
-Time/sample sorted ascending:
-Chunk size: 22, time: 54.29 sec, time/sample: 2.47 sec
-Chunk size: 9, time: 32.19 sec, time/sample: 3.58 sec
-Chunk size: 27, time: 102.89 sec, time/sample: 3.81 sec
-Chunk size: 29, time: 125.34 sec, time/sample: 4.32 sec
-Chunk size: 30, time: 241.40 sec, time/sample: 8.05 sec
-Chunk size: 29, time: 242.62 sec, time/sample: 8.37 sec
-Chunk size: 24, time: 408.45 sec, time/sample: 17.02 sec
-Chunk size: 29, time: 1040.05 sec, time/sample: 35.86 sec
-Chunk size: 30, time: 1180.05 sec, time/sample: 39.33 sec
-Creating json from Arrow format: 100%|███████████████████████████████████████████████| 1/1 [00:00<00:00, 108.43ba/s]
+--------------------------- Testing speed:
+                          q_chunk_big=100, 
+                          q_chunk_small=20,
+                          n_chunk_max_ch=16_000):
+Allocated GPU memory: 7,288.4 MB
+Processing chunk of 100 questions...
+The `seen_tokens` attribute is deprecated and will be removed in v4.41. Use the `cache_position` model input instead.
+...total time: 66.76 sec
+Chunk size: 100, time: 66.76 sec, time/sample: 0.67 sec
+Processing chunk of 20 questions...
+...total time: 15.72 sec
+Chunk size: 20, time: 15.72 sec, time/sample: 0.79 sec
+Creating json from Arrow format: 100%|██████████████████████████████████████████████| 1/1 [00:00<00:00, 159.72ba/s]
 zel@MLBOX:~/ml-projects/ShortGPT$ 
-
---------------------------- Second, added GC.collect():
-Allocated GPU memory: 14,115.8 MB
-Processing chunk of 17 questions...
-/home/zel/.cache/huggingface/modules/transformers_modules/microsoft/Phi-3-small-128k-instruct/97bc4122d021a946a1e6287bda16ce8868f9eb05/triton_flash_blocksparse_attn.py:88: UserWarning: Sparse CSR tensor support is in beta state. If you miss a functionality in the sparse tensor support, please submit a feature request to https://github.com/pytorch/pytorch/issues. (Triggered internally at ../aten/src/ATen/SparseCsrTensorImpl.cpp:53.)
-  x = [xi.to_sparse_csr() for xi in x]
-...total time: 30.40 sec
-Processing chunk of 19 questions...
-...total time: 23.06 sec
-Processing chunk of 19 questions...
-...total time: 598.18 sec
-Processing chunk of 12 questions...
-...total time: 18.48 sec
-Processing chunk of 22 questions...
-...total time: 90.46 sec
-Processing chunk of 11 questions...
-...total time: 58.77 sec
-Processing chunk of 13 questions...
-...total time: 51.64 sec
-Processing chunk of 22 questions...
-...total time: 732.94 sec
-Processing chunk of 18 questions...
-...total time: 55.65 sec
-Processing chunk of 21 questions...
-...total time: 593.64 sec
-Processing chunk of 25 questions...
-...total time: 21.86 sec
-Time/sample sorted ascending:
-Chunk size: 25, time: 21.86 sec, time/sample: 0.87 sec
-Chunk size: 19, time: 23.06 sec, time/sample: 1.21 sec
-Chunk size: 12, time: 18.48 sec, time/sample: 1.54 sec
-Chunk size: 17, time: 30.40 sec, time/sample: 1.79 sec
-Chunk size: 18, time: 55.65 sec, time/sample: 3.09 sec
-Chunk size: 13, time: 51.64 sec, time/sample: 3.97 sec
-Chunk size: 22, time: 90.46 sec, time/sample: 4.11 sec
-Chunk size: 11, time: 58.77 sec, time/sample: 5.34 sec
-Chunk size: 21, time: 593.64 sec, time/sample: 28.27 sec
-Chunk size: 19, time: 598.18 sec, time/sample: 31.48 sec
-Chunk size: 22, time: 732.94 sec, time/sample: 33.32 sec
-Creating json from Arrow format: 100%|███████████████████████████████████████████████| 1/1 [00:00<00:00, 137.50ba/s]
---------------------------- Third: added input and output size:
-Loading checkpoint shards: 100%|██████████████████████████████████████████████████████| 4/4 [00:06<00:00,  1.62s/it]
-Allocated GPU memory: 14,115.8 MB
-Processing chunk of 9 questions...
-Padded input length: 37
-/home/zel/.cache/huggingface/modules/transformers_modules/microsoft/Phi-3-small-128k-instruct/97bc4122d021a946a1e6287bda16ce8868f9eb05/triton_flash_blocksparse_attn.py:88: UserWarning: Sparse CSR tensor support is in beta state. If you miss a functionality in the sparse tensor support, please submit a feature request to https://github.com/pytorch/pytorch/issues. (Triggered internally at ../aten/src/ATen/SparseCsrTensorImpl.cpp:53.)
-  x = [xi.to_sparse_csr() for xi in x]
-Output lengths: [248, 248, 248, 248, 248, 248, 248, 248, 248]
-Padded input length: 370
-Output lengths: [428, 428, 428, 428, 428, 428, 428, 428, 428]
-...total time: 19.42 sec
-Processing chunk of 16 questions...
-Padded input length: 85
-Output lengths: [380, 380, 380, 380, 380, 380, 380, 380, 380, 380, 380, 380, 380, 380, 380, 380]
-Padded input length: 451
-Output lengths: [484, 484, 484, 484, 484, 484, 484, 484, 484, 484, 484, 484, 484, 484, 484, 484]
-...total time: 23.94 sec
-Processing chunk of 11 questions...
-Padded input length: 54
-Output lengths: [237, 237, 237, 237, 237, 237, 237, 237, 237, 237, 237]
-Padded input length: 339
-Output lengths: [385, 385, 385, 385, 385, 385, 385, 385, 385, 385, 385]
-...total time: 14.24 sec
+---------------------------
+def smart_chunk_generator(llm_call, 
+                          questions, 
+                          q_chunk_big=100, 
+                          q_chunk_small=20,
+                          n_chunk_max_ch=32_000):
+Allocated GPU memory: 7,288.4 MB
+Processing chunk of 100 questions...
+The `seen_tokens` attribute is deprecated and will be removed in v4.41. Use the `cache_position` model input instead.
+...total time: 77.98 sec
+Chunk size: 100, time: 77.98 sec, time/sample: 0.78 sec
 Processing chunk of 20 questions...
-Padded input length: 106
-Output lengths: [354, 354, 354, 354, 354, 354, 354, 354, 354, 354, 354, 354, 354, 354, 354, 354, 354, 354, 354, 354]
-Padded input length: 423
-Output lengths: [482, 482, 482, 482, 482, 482, 482, 482, 482, 482, 482, 482, 482, 482, 482, 482, 482, 482, 482, 482]
-...total time: 25.20 sec
-Processing chunk of 17 questions...
-Padded input length: 270
-Output lengths: [1230, 1230, 1230, 1230, 1230, 1230, 1230, 1230, 1230, 1230, 1230, 1230, 1230, 1230, 1230, 1230, 1230]
-Padded input length: 1131
-Output lengths: [1180, 1180, 1180, 1180, 1180, 1180, 1180, 1180, 1180, 1180, 1180, 1180, 1180, 1180, 1180, 1180, 1180]
-...total time: 475.55 sec
-Processing chunk of 17 questions...
-Padded input length: 311
-Output lengths: [727, 727, 727, 727, 727, 727, 727, 727, 727, 727, 727, 727, 727, 727, 727, 727, 727]
-Padded input length: 577
-Output lengths: [737, 737, 737, 737, 737, 737, 737, 737, 737, 737, 737, 737, 737, 737, 737, 737, 737]
-...total time: 57.89 sec
-Processing chunk of 18 questions...
-Padded input length: 349
-Output lengths: [873, 873, 873, 873, 873, 873, 873, 873, 873, 873, 873, 873, 873, 873, 873, 873, 873, 873]
-Padded input length: 695
-Output lengths: [855, 855, 855, 855, 855, 855, 855, 855, 855, 855, 855, 855, 855, 855, 855, 855, 855, 855]
-...total time: 231.21 sec
-Processing chunk of 19 questions...
-Padded input length: 204
-Output lengths: [497, 497, 497, 497, 497, 497, 497, 497, 497, 497, 497, 497, 497, 497, 497, 497, 497, 497, 497]
-Padded input length: 487
-Output lengths: [647, 647, 647, 647, 647, 647, 647, 647, 647, 647, 647, 647, 647, 647, 647, 647, 647, 647, 647]
-...total time: 44.17 sec
-Processing chunk of 17 questions...
-Padded input length: 86
-Output lengths: [546, 546, 546, 546, 546, 546, 546, 546, 546, 546, 546, 546, 546, 546, 546, 546, 546]
-Padded input length: 621
-Output lengths: [677, 677, 677, 677, 677, 677, 677, 677, 677, 677, 677, 677, 677, 677, 677, 677, 677]
-...total time: 88.90 sec
-Processing chunk of 18 questions...
-Padded input length: 77
-Output lengths: [335, 335, 335, 335, 335, 335, 335, 335, 335, 335, 335, 335, 335, 335, 335, 335, 335, 335]
-Padded input length: 459
-Output lengths: [526, 526, 526, 526, 526, 526, 526, 526, 526, 526, 526, 526, 526, 526, 526, 526, 526, 526]
-...total time: 25.40 sec
-Processing chunk of 15 questions...
-Padded input length: 482
-Output lengths: [860, 860, 860, 860, 860, 860, 860, 860, 860, 860, 860, 860, 860, 860, 860]
-Padded input length: 984
-Output lengths: [1144, 1144, 1144, 1144, 1144, 1144, 1144, 1144, 1144, 1144, 1144, 1144, 1144, 1144, 1144]
-...total time: 80.73 sec
+...total time: 27.04 sec
+Chunk size: 20, time: 27.04 sec, time/sample: 1.35 sec
+---------------------------
+def smart_chunk_generator(llm_call, 
+                          questions, 
+                          q_chunk_big=100, 
+                          q_chunk_small=20,
+                          n_chunk_max_ch=24_000):
+Allocated GPU memory: 7,288.4 MB
+Processing chunk of 100 questions...
+The `seen_tokens` attribute is deprecated and will be removed in v4.41. Use the `cache_position` model input instead.
+...total time: 82.94 sec
+Chunk size: 100, time: 82.94 sec, time/sample: 0.83 sec
 Processing chunk of 20 questions...
-Padded input length: 58
-Output lengths: [301, 301, 301]
-Padded input length: 404
-Output lengths: [521, 521, 521]
-...total time: 20.26 sec
-Time/sample sorted ascending:
-Chunk size: 20, time: 20.26 sec, time/sample: 1.01 sec
-Chunk size: 20, time: 25.20 sec, time/sample: 1.26 sec
-Chunk size: 11, time: 14.24 sec, time/sample: 1.29 sec
-Chunk size: 18, time: 25.40 sec, time/sample: 1.41 sec
-Chunk size: 16, time: 23.94 sec, time/sample: 1.50 sec
-Chunk size: 9, time: 19.42 sec, time/sample: 2.16 sec
-Chunk size: 19, time: 44.17 sec, time/sample: 2.32 sec
-Chunk size: 17, time: 57.89 sec, time/sample: 3.41 sec
-Chunk size: 17, time: 88.90 sec, time/sample: 5.23 sec
-Chunk size: 15, time: 80.73 sec, time/sample: 5.38 sec
-Chunk size: 18, time: 231.21 sec, time/sample: 12.84 sec
-Chunk size: 17, time: 475.55 sec, time/sample: 27.97 sec
-Creating json from Arrow format: 100%|███████████████████████████████████████████████| 1/1 [00:00<00:00, 154.39ba/s]
---------------------------- ChatGPT suggestions:
-It looks like the significant variations in execution times are due to the differences in the **padded input length** and **output lengths**. As you suspected, padding could be inflating the input sequences to the length of the longest sequence in the batch, which results in much larger inputs and outputs, especially in cases with unusually long sequences.
+...total time: 46.93 sec
+Chunk size: 20, time: 46.93 sec, time/sample: 2.35 sec
+---------------------------
+def smart_chunk_generator(llm_call, 
+                          questions, 
+                          q_chunk_big=100, 
+                          q_chunk_small=20,
+                          n_chunk_max_ch=20_000):
+Allocated GPU memory: 7,288.4 MB
+Processing chunk of 100 questions...
+The `seen_tokens` attribute is deprecated and will be removed in v4.41. Use the `cache_position` model input instead.
+...total time: 63.62 sec
+Chunk size: 100, time: 63.62 sec, time/sample: 0.64 sec
+Processing chunk of 20 questions...
+...total time: 16.05 sec
+Chunk size: 20, time: 16.05 sec, time/sample: 0.80 sec
+---------------------------
+def smart_chunk_generator(llm_call, 
+                          questions, 
+                          q_chunk_big=100, 
+                          q_chunk_small=20,
+                          n_chunk_max_ch=18_000):
+Allocated GPU memory: 7,288.4 MB
+Processing chunk of 100 questions...
+The `seen_tokens` attribute is deprecated and will be removed in v4.41. Use the `cache_position` model input instead.
+...total time: 64.46 sec
+Chunk size: 100, time: 64.46 sec, time/sample: 0.64 sec
+Processing chunk of 20 questions...
+...total time: 15.91 sec
+Chunk size: 20, time: 15.91 sec, time/sample: 0.80 sec
+---------------------------
+def smart_chunk_generator(llm_call, 
+                          questions, 
+                          q_chunk_big=100, 
+                          q_chunk_small=20,
+                          n_chunk_max_ch=22_000):
+Allocated GPU memory: 7,288.4 MB
+Processing chunk of 100 questions...
+The `seen_tokens` attribute is deprecated and will be removed in v4.41. Use the `cache_position` model input instead.
+...total time: 63.32 sec
+Chunk size: 100, time: 63.32 sec, time/sample: 0.63 sec
+Processing chunk of 20 questions...
+...total time: 15.37 sec
+Chunk size: 20, time: 15.37 sec, time/sample: 0.77 sec
+---------------------------
+def smart_chunk_generator(llm_call, 
+                          questions, 
+                          q_chunk_big=100, 
+                          q_chunk_small=50,
+                          n_chunk_max_ch=22_000):
+Never completed!
+---------------------------
+def smart_chunk_generator(llm_call, 
+                          questions, 
+                          q_chunk_big=100, 
+                          q_chunk_small=25,
+                          n_chunk_max_ch=22_000):
+Allocated GPU memory: 7,288.4 MB
+Processing chunk of 100 questions...
+The `seen_tokens` attribute is deprecated and will be removed in v4.41. Use the `cache_position` model input instead.
+...total time: 77.35 sec
+Chunk size: 100, time: 77.35 sec, time/sample: 0.77 sec
+Processing chunk of 20 questions...
+...total time: 17.07 sec
+Chunk size: 20, time: 17.07 sec, time/sample: 0.85 sec
+---------------------------
+def smart_chunk_generator(llm_call, 
+                          questions, 
+                          q_chunk_big=80, 
+                          q_chunk_small=16,
+                          n_chunk_max_ch=22_000):
+Allocated GPU memory: 7,288.4 MB
+Processing chunk of 80 questions...
+The `seen_tokens` attribute is deprecated and will be removed in v4.41. Use the `cache_position` model input instead.
+...total time: 70.38 sec
+Chunk size: 80, time: 70.38 sec, time/sample: 0.88 sec
+Processing chunk of 40 questions...
+...total time: 42.50 sec
+Chunk size: 40, time: 42.50 sec, time/sample: 1.06 sec
+---------------------------
+def smart_chunk_generator(llm_call, 
+                          questions, 
+                          q_chunk_big=150, 
+                          q_chunk_small=15,
+                          n_chunk_max_ch=22_000):
+Allocated GPU memory: 7,288.4 MB
+Processing chunk of 120 questions...
+The `seen_tokens` attribute is deprecated and will be removed in v4.41. Use the `cache_position` model input instead.
+...total time: 92.68 sec
+Chunk size: 120, time: 92.68 sec, time/sample: 0.77 sec
+---------------------------
+def smart_chunk_generator(llm_call, 
+                          questions, 
+                          q_chunk_big=100, 
+                          q_chunk_small=10,
+                          n_chunk_max_ch=22_000):
+Allocated GPU memory: 7,288.4 MB
+Processing chunk of 100 questions...
+The `seen_tokens` attribute is deprecated and will be removed in v4.41. Use the `cache_position` model input instead.
+...total time: 107.36 sec
+Chunk size: 100, time: 107.36 sec, time/sample: 1.07 sec
+Processing chunk of 20 questions...
+...total time: 22.74 sec
+Chunk size: 20, time: 22.74 sec, time/sample: 1.14 sec
+---------------------------
+def smart_chunk_generator(llm_call, 
+                          questions, 
+                          q_chunk_big=200, 
+                          q_chunk_small=20,
+                          n_chunk_max_ch=22_000):
+Allocated GPU memory: 7,288.4 MB
+Processing chunk of 120 questions...
+The `seen_tokens` attribute is deprecated and will be removed in v4.41. Use the `cache_position` model input instead.
+...total time: 82.67 sec
+Chunk size: 120, time: 82.67 sec, time/sample: 0.69 sec
+---------------------------
+def smart_chunk_generator(llm_call, 
+                          questions, 
+                          q_chunk_big=100, 
+                          q_chunk_small=20,
+                          n_chunk_max_ch=22_000):
+Allocated GPU memory: 7,288.4 MB
+Processing chunk of 100 questions...
+The `seen_tokens` attribute is deprecated and will be removed in v4.41. Use the `cache_position` model input instead.
+...total time: 66.79 sec
+Chunk size: 100, time: 66.79 sec, time/sample: 0.67 sec
+Processing chunk of 20 questions...
+...total time: 16.95 sec
+Chunk size: 20, time: 16.95 sec, time/sample: 0.85 sec
+---------------------------
 
-### Key Observations:
-1. **Padded Input Lengths**: The input lengths vary significantly across different chunks, sometimes going as high as 1131 tokens.
-2. **Output Lengths**: Similarly, output lengths vary widely, with some outputs as long as 1230 tokens.
-3. **Time Spikes**: The large padded input and output lengths directly correlate with the increased total processing time for some chunks.
 
-### Potential Solutions:
-1. **Reduce Padding Impact**:
-   - **Dynamic Batching**: Sort the sequences by length before batching, so that you minimize the amount of padding required in each batch. You can then group sequences of similar lengths together, which will reduce padding overhead and speed up processing.
-   
-   Here's an example approach for sorting by input length before batching:
-   ```python
-   sorted_messages = sorted(messages, key=lambda x: len(tokenizer.encode(x['content'])))
-   ```
-
-2. **Use Smaller Max Length**: If feasible, limit the maximum input and output lengths (`max_new_tokens`) to avoid inflating sequence sizes. This ensures that very long sequences are truncated or handled separately.
-   ```python
-   outputs_tokens = model.generate(
-       inputs_tokenized, attention_mask=inputs_att_mask, 
-       max_new_tokens=min(max_new_tok, 512),  # Adjust this to a reasonable limit
-       pad_token_id=tokenizer.eos_token_id)
-   ```
-
-3. **Batch by Input and Output Length**: You can also batch based on both input and expected output lengths to prevent large outputs from slowing down the entire batch.
-
-4. **Profile Long Sequences Separately**: Identify particularly long inputs or outputs and process them in separate batches with a different chunk size to avoid them from affecting the average processing time of the whole batch.
-
-By applying these techniques, you should be able to control the variability in chunk processing times.
+---------------------------

@@ -25,7 +25,7 @@ def main_cli(input_dataset: str, question_column: str, output_jsonl: str):
     dataset = datasets.load_dataset(input_dataset)['train']
 
     # Process first 60 rows.
-    questions = [dataset[i][question_column][0]['content'] for i in range(150)]
+    questions = [dataset[i][question_column][0]['content'] for i in range(120)]
 
     # Load the tokenizer and model.
     # model_name = 'meta-llama/Meta-Llama-3.1-8B-Instruct'
@@ -92,7 +92,7 @@ def smart_chunk_generator(llm_call,
                           questions, 
                           q_chunk_big=100, 
                           q_chunk_small=20,
-                          n_chunk_max_ch=10_000):
+                          n_chunk_max_ch=22_000):
     ''' Similar to chunk_generator, but minimizes the inefficiency of long questions and 
     long outputs (from the first LLM call) adding padding to shorter questions and outputs. 
     It works by recursively smaller chunks and chunks that don't exceed chunk_max_ch. '''
