@@ -7,11 +7,11 @@ import utils.utils as utils
 
 manual = '''CLI py app that gets input dataset name, question column name, and outputs a JSONL file with the dataset containing normal and short answers. App is called as:
 
-python dataset_cli.py input_dataset question_column output_jsonl 
+python dataset_cli.py input_dataset question_column output_jsonl continue/restart
 
 For example:
 
-python dataset_cli.py lmsys/chatbot_arena_conversations conversation_a chatbot_arena_long_short_dataset.jsonl
+python dataset_cli.py lmsys/chatbot_arena_conversations conversation_a chatbot_arena_long_short_dataset.jsonl continue
 
 App uses Pandas to load and save the dataset. 
 '''
@@ -20,12 +20,13 @@ App uses Pandas to load and save the dataset.
 @click.argument('input_dataset', type=str)
 @click.argument('question_column', type=str)
 @click.argument('output_jsonl', type=str)
-def main_cli(input_dataset: str, question_column: str, output_jsonl: str):
+@click.argument('mode', type=click.Choice(['continue', 'restart'], case_sensitive=False))
+def main_cli(input_dataset: str, question_column: str, output_jsonl: str, mode: str):
     # Load the dataset from HuggingFace.
     dataset = datasets.load_dataset(input_dataset)['train']
 
     # Process first 60 rows.
-    questions = [dataset[i][question_column][0]['content'] for i in range(120)]
+    questions = [dataset[i][question_column][0]['content'] for i in range(360)]
 
     # Load the tokenizer and model.
     # model_name = 'meta-llama/Meta-Llama-3.1-8B-Instruct'
@@ -35,14 +36,21 @@ def main_cli(input_dataset: str, question_column: str, output_jsonl: str):
     print(f'Allocated GPU memory: {torch.cuda.memory_allocated() / (1024*1024):,.1f} MB')
     llm_call = lambda messages, new_tokens: \
         llm.batch_call_llm(tokenizer, model, messages, new_tokens)
+    
+    # If mode is 'continue', open the file and determine the number of rows to skip.
+    skip_rows = 0
+    if mode == 'continue':
+        try:
+            with open(output_jsonl, 'r') as f:
+                skip_rows = len(f.readlines())
+        except FileNotFoundError:
+            pass
+    elif mode == 'restart': 
+        # If mode is 'restart', reset the output file.
+        with open(output_jsonl, 'w') as f: pass
 
-    # Use a from_list to create a new dataset with three columns: question, normal, and short.
-    out_ds = datasets.Dataset.from_list(list(
-        smart_chunk_generator(llm_call, questions)))
-
-    # Save the dataset to a JSONL file. By default saves in JSONL format:
-    # https://huggingface.co/docs/datasets/v2.21.0/en/package_reference/main_classes#datasets.Dataset.to_json
-    out_ds.to_json(output_jsonl)
+    # Process questions in chunks and save each chunk to a JSONL file.
+    smart_chunker(llm_call, questions, skip_rows, output_jsonl)
 
 # Word limits for normal and brief answers.
 normal_word_limit = 120
@@ -88,27 +96,24 @@ def chunk_generator(llm_call, questions, chunk_size=25):
         for q, na, ba in zip(chunk_questions, normal_answers, brief_answers):
             yield {"question": q, "normal": na, "brief": ba}
 
-def smart_chunk_generator(llm_call, 
-                          questions, 
-                          q_chunk_big=100, 
-                          q_chunk_small=20,
-                          n_chunk_max_ch=22_000):
+def smart_chunker(llm_call, questions, skip_rows, out_jsonl, 
+                  q_chunk_big=100, q_chunk_small=20, n_chunk_max_ch=22_000):
     ''' Similar to chunk_generator, but minimizes the inefficiency of long questions and 
     long outputs (from the first LLM call) adding padding to shorter questions and outputs. 
-    It works by recursively smaller chunks and chunks that don't exceed chunk_max_ch. '''
+    It works by breaking into smaller chunks and chunks that don't exceed chunk_max_ch. '''
 
     # Positions of columns in table.
     p_id, p_question, p_normal, p_size, p_brief = 0, 1, 2, 3, 4 
 
     # Slice into big chunks of questions.
-    for i in range(0, len(questions), q_chunk_big):
+    for i in range(skip_rows, len(questions), q_chunk_big):
 
         # Create table with id, question, normal, size, and brief columns.
         table = [[id, question, None, None, None] 
                 for id, question in enumerate(questions[i:i+q_chunk_big])]
         chunk_len = len(table) # Smaller than q_chunk_big at the end of questions.
         
-        timer = utils.Timer(f"Processing chunk of {chunk_len} questions...")
+        timer = utils.Timer(f"Question {i} of {len(questions)}...")
         with timer:
 
             # Slice into small chunks of questions.
@@ -148,44 +153,15 @@ def smart_chunk_generator(llm_call,
             # Sort by id.
             table.sort(key=lambda x: x[p_id])
 
-            # Yield the big chunk.
-            for row in table:
-                yield {"question": row[p_question], "brief": row[p_brief], "normal": row[p_normal]}    
+            # Create a Dataset from table.
+            out_ds = datasets.Dataset.from_list(
+                [{"question": row[p_question], "brief": row[p_brief], "normal": row[p_normal]}
+                 for row in table])
+            # Append to JSONL.
+            with open(out_jsonl, 'ab') as f:
+                out_ds.to_json(f, lines=True)   
 
-        print(f"Chunk size: {chunk_len}, time: {timer.last_elapsed_time:.2f} sec, " + 
-              f"time/sample: {timer.last_elapsed_time/chunk_len:.2f} sec")            
-
-def random_chunk_generator(llm_call, questions):
-    ''' Same as chunk_generator, but makes chunk size random, measures time for
-    each chunk using utils.Timer, and prints execution times sorted ascending. Useful to find out
-    the optimal chunk size for a given model, context window, and GPU. '''
-
-    runs = []
-    i = 0
-    while i < len(questions):
-        chunk_size = random.randint(8, 25)
-        chunk_questions = questions[i:i+chunk_size]
-
-        timer = utils.Timer(f"Processing chunk of {chunk_size} questions...")
-        with timer:
-            normal_answers = llm_normal_answers(llm_call, chunk_questions)
-            brief_answers = llm_brief_answers(llm_call, chunk_questions, normal_answers)
-        runs.append((chunk_size, timer.last_elapsed_time, timer.last_elapsed_time/chunk_size))
-
-        # Not sure if this does anything.
-        import gc
-        torch.cuda.empty_cache()
-        gc.collect()
-
-        for q, na, ba in zip(chunk_questions, normal_answers, brief_answers):
-            yield {"question": q, "normal": na, "brief": ba}
-
-        i += chunk_size
-
-    runs.sort(key=lambda x: x[2])
-    print("Time/sample sorted ascending:")
-    for chunk_size, elapsed_time, time_per_sample in runs:
-        print(f"Chunk size: {chunk_size}, time: {elapsed_time:.2f} sec, time/sample: {time_per_sample:.2f} sec")
+        print(f"Time/sample: {timer.last_elapsed_time/chunk_len:.2f} sec")            
 
 def llm_normal_answers(llm_call, questions):
     messages = [ [{"role": "user", 
