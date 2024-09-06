@@ -24,9 +24,8 @@ App uses Pandas to load and save the dataset.
 def main_cli(input_dataset: str, question_column: str, output_jsonl: str, mode: str):
     # Load the dataset from HuggingFace.
     dataset = datasets.load_dataset(input_dataset)['train']
-
-    # Process first 60 rows.
-    questions = [dataset[i][question_column][0]['content'] for i in range(360)]
+    questions = [row[question_column][0]['content'] for row in dataset]
+    # questions = [dataset[i][question_column][0]['content'] for i in range(360)] # Only N rows.
 
     # Load the tokenizer and model.
     # model_name = 'meta-llama/Meta-Llama-3.1-8B-Instruct'
