@@ -1,0 +1,42 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "debugpy: Current File",
+            "program": "${file}",
+            "type": "debugpy",
+            "request": "launch",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
+            "name": "1...dataset_cli.py",
+            "program": "${workspaceFolder}/1_dataset_creator/dataset_cli.py",
+            "args": [
+                "lmsys/chatbot_arena_conversations", 
+                "conversation_a", 
+                "1_dataset_creator/phi3_arena_brief_dataset.jsonl"
+            ],
+            "type": "debugpy",
+            "request": "launch",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
+            "name": "2...benchmark_cli.py",
+            "program": "${workspaceFolder}/2_brevity_benchmark/benchmark_cli.py",
+            "args": [
+                "2_brevity_benchmark/chatgpt-short-answers.csv", 
+                "2_brevity_benchmark/chatgpt-short-best.csv", 
+                "meta-llama/Meta-Llama-3.1-8B-Instruct"
+            ],
+            "type": "debugpy",
+            "request": "launch",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+    ]
+}
