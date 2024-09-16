@@ -1,9 +1,11 @@
 import unittest
-from benchmark_cli import read_csv, evaluate
+import pandas as pd # type: ignore
+from benchmark_cli import evaluate
 
 class TestEvaluateLLMFunction(unittest.TestCase):
     def test_evaluate_llm(self):
-        in_df = read_csv("2_brevity_benchmark/chatgpt-short-answers.csv") 
+        in_df = pd.read_json("2_brevity_benchmark/in-short-answers.jsonl", 
+                             orient='records', dtype=False, lines=True) 
         out_df = evaluate(in_df, "meta-llama/Meta-Llama-3.1-8B-Instruct")
         expected = [
             ("101", "Short"), 

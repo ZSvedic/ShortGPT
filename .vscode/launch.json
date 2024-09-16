@@ -30,8 +30,8 @@
             "name": "2...benchmark_cli.py",
             "program": "${workspaceFolder}/2_brevity_benchmark/benchmark_cli.py",
             "args": [
-                "2_brevity_benchmark/chatgpt-short-answers.csv", 
-                "2_brevity_benchmark/chatgpt-short-best.csv", 
+                "2_brevity_benchmark/in-short-answers.jsonl", 
+                "2_brevity_benchmark/out-best.jsonl", 
                 "meta-llama/Meta-Llama-3.1-8B-Instruct"
             ],
             "type": "debugpy",

@@ -1,40 +1,34 @@
+import typing
 import click
-import csv
 import pandas as pd # type: ignore
 import utils.llm_utils as llm
 
-manual = '''CLI py app that inputs a CSV file where each row has 2+ answers to a question and outputs a CSV file that has the shortest answer to the question that still contains the non-trivial answer. App is called as:
+manual = '''CLI py app that inputs a JSONL file where each row has 2+ answers to a question and outputs a JSONL file that has the shortest answer to the question that still contains the non-trivial answer. App is called as:
 
-python benchmark_cli.py in_csv out_csv evaluator
+python benchmark_cli.py in_jsonl out_jsonl evaluator
 
 Where the evaluator is either "length" or the name of the HuggingFace LLM model.
 For example:
 
-python benchmark_cli.py chatgpt-short-answers.csv chatgpt-short-best.csv length
+python benchmark_cli.py in-short-answers.jsonl out-best.jsonl length
 
 will compare based on length, while:
 
-python benchmark_cli.py chatgpt-short-answers.csv chatgpt-short-best.csv meta-llama/Meta-Llama-3.1-8B-Instruct
+python benchmark_cli.py in-short-answers.jsonl out-best.jsonl meta-llama/Meta-Llama-3.1-8B-Instruct
 
 will use Llama-3.1-8B to evaluate the best answers.
 
-Input CSV columns are ID, Question, Answer-X, Answer-Y, etc. Output CSV columns are ID, Question, Name-best, and Answer-best. Column ID contains integers starting from 101. Columns Question, Answer-X, Answer-Y, Answer are texts. The name of the answer column must begin with "Answer-"; the part after that is the descriptive name. The name-best column contains that descriptive name. 
+Input JSONL fields are ID, Question, Answer-X, Answer-Y, etc. Output JSONL fields are ID, Question, Name-best, and Answer-best. Field ID contains integers starting from 101. Fields Question, Answer-X, Answer-Y, Answer are texts. The name of the answer field must begin with "Answer-"; the part after that is the descriptive name. The name-best field contains that descriptive name.
 
-For example, for input CSV: 
+For example, for input JSONL:
 
-"ID", "Question", "Answer-ChatGPT", "Answer-Short" 
+{"ID": "101", "Question": "How much is 2+3?", "Answer-ChatGPT": "Expression 2+3 is equal to 5.", "Answer-Short": "5"}
+{"ID": "102", "Question": "What is the color of the sky?", "Answer-ChatGPT": "The sky is blue", "Answer-Short": "sky"}
 
-"101", "How much is 2+3?", "Expression 2+3 is equal to 5.", "5" 
+Output JSONL is:
 
-"102", "What is the color of the sky?", "The sky is blue", "sky"  
-
-Output CSV is:
-
-"ID", "Question", "Name-best", "Answer-best"
-
-"101", "How much is 2+3?", "Short", "5"
-
-"102", "What is the color of the sky?", "ChatGPT", "The sky is blue"
+{"ID": "101", "Question": "How much is 2+3?", "Name-best": "Short", "Answer-best": "5"}
+{"ID": "102", "Question": "What is the color of the sky?", "Name-best": "ChatGPT", "Answer-best": "The sky is blue"}
 
 As output, the app prints errors and a summary with the number of wins, average length, and a win example for each descriptive name. For the above file, the output should be:
 
@@ -50,34 +44,23 @@ All winners average length: 8.0
 '''
 
 @click.command(help=manual)
-@click.argument('in_csv', type=click.Path(exists=True))
-@click.argument('out_csv', type=click.Path())
+@click.argument('in_jsonl', type=click.Path(exists=True))
+@click.argument('out_jsonl', type=click.Path())
 @click.argument('evaluator', type=str)
-def main_cli(in_csv: str, out_csv: str, evaluator: str):
-    in_df = read_csv(in_csv) 
+def main_cli(in_jsonl: str, 
+             out_jsonl: str, 
+             evaluator: str) -> None:
+    
+    in_df = pd.read_json(in_jsonl, orient='records', dtype=False, lines=True)
 
     out_df = evaluate(in_df, evaluator)
 
-    out_df.to_csv(out_csv, index=False, quoting=csv.QUOTE_ALL, quotechar='"')
+    out_df.to_json(out_jsonl, orient='records', lines=True)
 
-    # Group by "Name-best" and perform the aggregations
-    summary = out_df.groupby("Name-best").agg(
-        Wins=('Name-best', 'count'),
-        Win_avg_length=('Answer-best', lambda x: round(x.str.len().mean(), 1)),
-        Win_example=('Answer-best', 'first'),
-    )
-
-    print(summary)
-    print(f"All winners average length: {round(out_df['Answer-best'].str.len().mean(), 1)}")
-
-def read_csv(in_csv: str) -> pd.DataFrame:
-    in_df = pd.read_csv(
-        in_csv, skipinitialspace=True, quoting=csv.QUOTE_ALL, quotechar='"', 
-        keep_default_na=False, dtype=str)
-    in_df.rename(columns=lambda x: x.strip(), inplace=True) # Pandas spaces outside quotes fix.
-    return in_df
-    
-def evaluate(in_df, evaluator: str):
+    print_summary(out_df)
+   
+def evaluate(in_df: pd.DataFrame, 
+             evaluator: str) -> pd.DataFrame:
     ''' Gets descriptive names of in_df answer columns, finds the best answer using evaluator, 
     and returns a DataFrame with the best answer for each question. '''
 
@@ -100,7 +83,10 @@ def evaluate(in_df, evaluator: str):
 
     return out_df
 
-def evaluate_length(in_df, out_df, answer_cols, answer_names):
+def evaluate_length(in_df: pd.DataFrame, 
+                    out_df: pd.DataFrame, 
+                    answer_cols: list, 
+                    answer_names: list) -> None:
     ''' Evaluate the best answer based on the shortest length. '''
     for i, row in in_df.iterrows():
         answers = [row[col].strip() for col in answer_cols]
@@ -120,7 +106,7 @@ A2
 Input:
 Q: What is the color of the sky?
 A1: The sky is blue.
-A2: Sky.
+A2: sky
 Output:
 A1
 --- Example 3 ---
@@ -138,8 +124,13 @@ Note that:
 Given all this, what is the briefest answer to the question and answers below?
 '''
 
-def evaluate_llm(llm_call, in_df, out_df, answer_cols, answer_names):
+def evaluate_llm(llm_call: typing.Callable[[list], list], 
+                 in_df: pd.DataFrame, 
+                 out_df: pd.DataFrame, 
+                 answer_cols: list, 
+                 answer_names: list) -> None:
     ''' Same as evaluate_length, but uses the LLM model to evaluate the best answer. '''
+
     messages, answers = [], []
     for _, row in in_df.iterrows():
         question = row["Question"]
@@ -157,6 +148,22 @@ def evaluate_llm(llm_call, in_df, out_df, answer_cols, answer_names):
         out_df.at[i, "Name-best"] = answer_names[id_min]
         out_df.at[i, "Answer-best"] = answers[i][id_min]
 
+def print_summary(out_df: pd.DataFrame) -> None:
+    ''' Print a summary of the results. '''
+    
+    # Group by "Name-best" and perform the aggregations
+    summary = out_df.groupby("Name-best").agg(
+        Wins=('Name-best', 'count'),
+        Win_avg_length=('Answer-best', lambda x: round(x.str.len().mean(), 1)),
+        Win_example=('Answer-best', 'first'),
+    )
+    # Calculate winning percentages.
+    summary['Wins %'] = (summary['Wins'] / len(out_df)) * 100
+    # Reorder columns.
+    summary = summary[['Wins', 'Wins %', 'Win_avg_length', 'Win_example']]
 
+    print(summary)
+    print(f"All winners average length: {round(out_df['Answer-best'].str.len().mean(), 1)}")
+ 
 if __name__ == '__main__':
     main_cli()
