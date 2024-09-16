@@ -93,7 +93,7 @@ def chunk_generator(llm_call, questions, chunk_size=25):
         normal_answers = llm_normal_answers(llm_call, chunk_questions)
         brief_answers = llm_brief_answers(llm_call, chunk_questions, normal_answers)
         for q, na, ba in zip(chunk_questions, normal_answers, brief_answers):
-            yield {"question": q, "normal": na, "brief": ba}
+            yield {"Question": q, "Answer-normal": na, "Answer-short": ba}
 
 def smart_chunker(llm_call, questions, skip_rows, out_jsonl, 
                   q_chunk_big=100, q_chunk_small=20, n_chunk_max_ch=22_000):
@@ -154,7 +154,9 @@ def smart_chunker(llm_call, questions, skip_rows, out_jsonl,
 
             # Create a Dataset from table.
             out_ds = datasets.Dataset.from_list(
-                [{"question": row[p_question], "brief": row[p_brief], "normal": row[p_normal]}
+                [{"Question": row[p_question], 
+                  "Answer-short": row[p_brief], 
+                  "Answer-normal": row[p_normal]}
                  for row in table])
             # Append to JSONL.
             with open(out_jsonl, 'ab') as f:

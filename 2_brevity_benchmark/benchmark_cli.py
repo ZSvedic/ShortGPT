@@ -70,10 +70,14 @@ def evaluate(in_df: pd.DataFrame,
     answer_names = [col[len(prefix):] for col in answer_cols]
 
     # Create output DataFrame.
-    out_df = pd.DataFrame(columns=["ID", "Question", "Name-best", "Answer-best"])
-    out_df["ID"] = in_df["ID"]
+    out_df = pd.DataFrame(columns=["Question", "Name-best", "Answer-best"])
     out_df["Question"] = in_df["Question"]
-
+    # Optional ID column.
+    if "ID" in in_df.columns:
+        out_df["ID"] = in_df["ID"]
+        # Reorder columns.
+        out_df = out_df[["ID", "Question", "Name-best", "Answer-best"]]
+        
     if evaluator == "length":
         evaluate_length(in_df, out_df, answer_cols, answer_names)
     else:
