@@ -46,3 +46,67 @@ def batch_call_llm(tokenizer, model, messages: list, max_new_tok: int) -> list:
                     for result in outputs_tokens]
                     
     return output_texts
+
+####################################### Chunking:
+
+from typing import Generator
+import datasets # type: ignore
+
+def fixed_chunker(dataset: datasets.Dataset, 
+                  chunk_size: int) -> Generator:
+    for i in range(0, len(dataset), chunk_size):
+        yield dataset.select(range(i, min(i + chunk_size, len(dataset))))
+
+def add_order_column(dataset: datasets.Dataset) -> datasets.Dataset:
+    return dataset.map(
+        lambda example, idx: {'order': idx}, 
+        with_indices=True)
+
+def token_len(tokenizer, text: str) -> torch.Tensor:
+    message = [{"role": "user", "content": text}] 
+    tokens = tokenizer.apply_chat_template([message], add_generation_prompt=True)[0]
+    return len(tokens)
+
+def add_token_len_column(tokenizer, dataset: datasets.Dataset) -> datasets.Dataset:
+    return dataset.map(
+        lambda example: {'token_len': token_len(tokenizer, example['question'])})
+
+def token_chunker(dataset: datasets.Dataset, 
+                  chunk_tokens: int,
+                  generated_tokens:int) -> Generator:
+    ''' Yield chunks of examples that when prompted, tokenized, padded and generated are 
+    smaller than chunk_tokens size. 
+    Since examples are sorted descending by token_len, all examples in a chunk will be
+    padded to the length of the first example in the chunk. '''
+    start = 0
+    while start < len(dataset):
+        example_len = dataset[start]['token_len'] + generated_tokens
+        n_chunk = min(chunk_tokens//example_len, len(dataset)-start)
+        yield dataset.select(range(start, start+n_chunk))
+        start += n_chunk
+
+def chunk_call_llm(chunk: datasets.Dataset, tokenizer, model,
+                   gen_tokens: int) -> None:
+    messages = [[{"role": "user", "content": question}] 
+                for question in chunk['question']]
+    answers = batch_call_llm(tokenizer, model, messages, gen_tokens)
+    return chunk.map(
+        lambda example, idx: {'answer': answers[idx]},
+        with_indices=True)
+
+def process_variable_chunks(dataset: datasets.Dataset, 
+                            tokenizer,
+                            model,
+                            big_chunk_size: int,
+                            small_chunk_tokens: int,
+                            max_gen_tokens: int) -> Generator:
+
+    for big_chunk in fixed_chunker(dataset, big_chunk_size):
+        big_chunk = add_token_len_column(tokenizer, big_chunk)
+        big_chunk = add_order_column(big_chunk)
+        big_chunk = big_chunk.sort('token_len', reverse=True)
+        big_chunk = datasets.concatenate_datasets(
+            [chunk_call_llm(small_chunk, tokenizer, model, max_gen_tokens) 
+             for small_chunk in token_chunker(big_chunk, small_chunk_tokens, max_gen_tokens)] )
+        big_chunk = big_chunk.sort('order')
+        yield big_chunk
