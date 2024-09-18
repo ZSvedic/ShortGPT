@@ -1,7 +1,7 @@
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM # type: ignore
 
-def load_tokenizer_and_model(model_name: str):
+def load_tokenizer_and_model(model_name: str) -> tuple:
     ''' Load the HuggingFace tokenizer and model, returns both. '''
     # Load tokenizer
     tokenizer = AutoTokenizer.from_pretrained(
@@ -22,7 +22,7 @@ def load_tokenizer_and_model(model_name: str):
 
     return tokenizer, model
 
-def batch_call_llm(tokenizer, model, messages, max_new_tok):
+def batch_call_llm(tokenizer, model, messages: list, max_new_tok: int) -> list:
     ''' Calls the LLM model in a batch, returns the output texts. Messages is a list of calls, 
     each item a list of messages, each message a dict with role and content. '''
     

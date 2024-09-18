@@ -63,7 +63,7 @@ brief_max_ch_soft = brief_word_limit * 6
 normal_max_tokens_hard = normal_max_ch_soft * 1.2 / 4
 brief_max_tokens_hard = brief_max_ch_soft * 1.2 / 4
 
-normal_prompt = f'''Answer the user prompt below ---. Never exceed {normal_max_ch_soft} characters / {normal_word_limit} words.
+normal_prompt = f'''Answer the user prompt below "---" line. Never exceed {normal_max_ch_soft} characters / {normal_word_limit} words.
 ---
 '''
 
@@ -95,7 +95,7 @@ def chunk_generator(llm_call, questions, chunk_size=25):
         for q, na, ba in zip(chunk_questions, normal_answers, brief_answers):
             yield {"Question": q, "Answer-normal": na, "Answer-short": ba}
 
-def smart_chunker(llm_call, questions, skip_rows, out_jsonl, 
+def smart_chunker(llm_call, questions:list, skip_rows:int, out_jsonl:str, 
                   q_chunk_big=100, q_chunk_small=20, n_chunk_max_ch=22_000):
     ''' Similar to chunk_generator, but minimizes the inefficiency of long questions and 
     long outputs (from the first LLM call) adding padding to shorter questions and outputs. 
@@ -110,7 +110,7 @@ def smart_chunker(llm_call, questions, skip_rows, out_jsonl,
         # Create table with id, question, normal, size, and brief columns.
         table = [[id, question, None, None, None] 
                 for id, question in enumerate(questions[i:i+q_chunk_big])]
-        chunk_len = len(table) # Smaller than q_chunk_big at the end of questions.
+        chunk_len = len(table) # Last chunk can be smaller than q_chunk_big.
         
         timer = utils.Timer(f"Question {i} of {len(questions)}...")
         with timer:
