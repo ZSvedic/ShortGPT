@@ -1,7 +1,7 @@
 import time
 import click
 import torch
-import datasets # type: ignore
+import datasets
 import utils.llm_utils as llm
 import utils.utils as utils
 from datasets.utils import disable_progress_bar
@@ -22,7 +22,7 @@ python dataset_cli.py lmsys/chatbot_arena_conversations chatbot_arena_long_short
 def main_cli(input_dataset: str, output_jsonl: str, mode: str):
     # Load the dataset from HuggingFace.
     dataset = datasets.load_dataset(input_dataset)['train']
-    # Disable progress bars for the rest of the program.
+    # Disable progress bars for map() and similar.
     disable_progress_bar()
 
     # Load the tokenizer and model.

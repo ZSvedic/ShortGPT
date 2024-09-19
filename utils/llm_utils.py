@@ -1,5 +1,5 @@
-import torch
-from transformers import AutoTokenizer, AutoModelForCausalLM # type: ignore
+import torch 
+from transformers import AutoTokenizer, AutoModelForCausalLM 
 
 def load_tokenizer_and_model(model_name: str) -> tuple:
     ''' Load the HuggingFace tokenizer and model, returns both. '''
@@ -62,7 +62,7 @@ def add_order_column(dataset: datasets.Dataset) -> datasets.Dataset:
         lambda example, idx: {'order': idx}, 
         with_indices=True)
 
-def token_len(tokenizer, text: str) -> torch.Tensor:
+def token_len(tokenizer, text: str) -> int:
     message = [{"role": "user", "content": text}] 
     tokens = tokenizer.apply_chat_template([message], add_generation_prompt=True)[0]
     return len(tokens)
@@ -86,7 +86,7 @@ def token_chunker(dataset: datasets.Dataset,
         start += n_chunk
 
 def chunk_call_llm(chunk: datasets.Dataset, tokenizer, model,
-                   gen_tokens: int) -> None:
+                   gen_tokens: int) -> datasets.Dataset:
     messages = [[{"role": "user", "content": prompt}] 
                 for prompt in chunk['prompt']]
     answers = batch_call_llm(tokenizer, model, messages, gen_tokens)

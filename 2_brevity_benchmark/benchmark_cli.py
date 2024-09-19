@@ -1,6 +1,6 @@
 import typing
 import click
-import pandas as pd # type: ignore
+import pandas as pd
 import utils.llm_utils as llm
 
 manual = '''CLI py app that inputs a JSONL file where each row has 2+ answers to a question and outputs a JSONL file that has the shortest answer to the question that still contains the non-trivial answer. App is called as:

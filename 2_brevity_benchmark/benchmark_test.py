@@ -1,5 +1,5 @@
 import unittest
-import pandas as pd # type: ignore
+import pandas as pd
 from benchmark_cli import evaluate
 
 class TestEvaluateLLMFunction(unittest.TestCase):
