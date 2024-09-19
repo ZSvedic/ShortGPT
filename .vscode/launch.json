@@ -17,7 +17,6 @@
             "program": "${workspaceFolder}/1_dataset_creator/dataset_cli.py",
             "args": [
                 "lmsys/chatbot_arena_conversations", 
-                "conversation_a", 
                 "1_dataset_creator/phi3_arena_brief_dataset.jsonl",
                 "continue"
             ],

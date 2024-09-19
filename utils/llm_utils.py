@@ -87,8 +87,8 @@ def token_chunker(dataset: datasets.Dataset,
 
 def chunk_call_llm(chunk: datasets.Dataset, tokenizer, model,
                    gen_tokens: int) -> None:
-    messages = [[{"role": "user", "content": question}] 
-                for question in chunk['question']]
+    messages = [[{"role": "user", "content": prompt}] 
+                for prompt in chunk['prompt']]
     answers = batch_call_llm(tokenizer, model, messages, gen_tokens)
     return chunk.map(
         lambda example, idx: {'answer': answers[idx]},
@@ -101,12 +101,12 @@ def process_variable_chunks(dataset: datasets.Dataset,
                             small_chunk_tokens: int,
                             max_gen_tokens: int) -> Generator:
 
-    for big_chunk in fixed_chunker(dataset, big_chunk_size):
-        big_chunk = add_token_len_column(tokenizer, big_chunk)
-        big_chunk = add_order_column(big_chunk)
-        big_chunk = big_chunk.sort('token_len', reverse=True)
-        big_chunk = datasets.concatenate_datasets(
+    for chunk in fixed_chunker(dataset, big_chunk_size):
+        chunk = add_token_len_column(tokenizer, chunk)
+        chunk = add_order_column(chunk)
+        chunk = chunk.sort('token_len', reverse=True)
+        chunk = datasets.concatenate_datasets(
             [chunk_call_llm(small_chunk, tokenizer, model, max_gen_tokens) 
-             for small_chunk in token_chunker(big_chunk, small_chunk_tokens, max_gen_tokens)] )
-        big_chunk = big_chunk.sort('order')
-        yield big_chunk
+             for small_chunk in token_chunker(chunk, small_chunk_tokens, max_gen_tokens)] )
+        chunk = chunk.sort('order')
+        yield chunk

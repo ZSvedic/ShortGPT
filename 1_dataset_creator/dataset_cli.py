@@ -1,31 +1,29 @@
+import time
 import click
-import random
 import torch
 import datasets # type: ignore
 import utils.llm_utils as llm
 import utils.utils as utils
+from datasets.utils import disable_progress_bar
 
-manual = '''CLI py app that gets input dataset name, question column name, and outputs a JSONL file with the dataset containing normal and short answers. App is called as:
+manual = '''CLI py app that gets input dataset name and outputs a JSONL file with the dataset containing normal and short answers. App is called as:
 
-python dataset_cli.py input_dataset question_column output_jsonl continue/restart
+python dataset_cli.py input_dataset output_jsonl continue/restart
 
 For example:
 
-python dataset_cli.py lmsys/chatbot_arena_conversations conversation_a chatbot_arena_long_short_dataset.jsonl continue
-
-App uses Pandas to load and save the dataset. 
+python dataset_cli.py lmsys/chatbot_arena_conversations chatbot_arena_long_short_dataset.jsonl continue
 '''
 
 @click.command(help=manual)
 @click.argument('input_dataset', type=str)
-@click.argument('question_column', type=str)
 @click.argument('output_jsonl', type=str)
 @click.argument('mode', type=click.Choice(['continue', 'restart'], case_sensitive=False))
-def main_cli(input_dataset: str, question_column: str, output_jsonl: str, mode: str):
+def main_cli(input_dataset: str, output_jsonl: str, mode: str):
     # Load the dataset from HuggingFace.
     dataset = datasets.load_dataset(input_dataset)['train']
-    questions = [row[question_column][0]['content'] for row in dataset]
-    # questions = [dataset[i][question_column][0]['content'] for i in range(360)] # Only N rows.
+    # Disable progress bars for the rest of the program.
+    disable_progress_bar()
 
     # Load the tokenizer and model.
     # model_name = 'meta-llama/Meta-Llama-3.1-8B-Instruct'
@@ -33,8 +31,6 @@ def main_cli(input_dataset: str, question_column: str, output_jsonl: str, mode: 
     model_name = 'microsoft/Phi-3-mini-4k-instruct'
     tokenizer, model = llm.load_tokenizer_and_model(model_name)
     print(f'Allocated GPU memory: {torch.cuda.memory_allocated() / (1024*1024):,.1f} MB')
-    llm_call = lambda messages, new_tokens: \
-        llm.batch_call_llm(tokenizer, model, messages, new_tokens)
     
     # If mode is 'continue', open the file and determine the number of rows to skip.
     skip_rows = 0
@@ -42,6 +38,7 @@ def main_cli(input_dataset: str, question_column: str, output_jsonl: str, mode: 
         try:
             with open(output_jsonl, 'r') as f:
                 skip_rows = len(f.readlines())
+            dataset = dataset.select(range(skip_rows, len(dataset)))
         except FileNotFoundError:
             pass
     elif mode == 'restart': 
@@ -49,7 +46,7 @@ def main_cli(input_dataset: str, question_column: str, output_jsonl: str, mode: 
         with open(output_jsonl, 'w') as f: pass
 
     # Process questions in chunks and save each chunk to a JSONL file.
-    smart_chunker(llm_call, questions, skip_rows, output_jsonl)
+    process_dataset(tokenizer, model, dataset, output_jsonl)
 
 # Word limits for normal and brief answers.
 normal_word_limit = 120
@@ -60,8 +57,8 @@ normal_max_ch_soft = normal_word_limit * 6
 brief_max_ch_soft = brief_word_limit * 6
 # Hard limit adds 20% buffer and divides by 4 to get LLM token limit.
 # https://help.openai.com/en/articles/4936856-what-are-tokens-and-how-to-count-them
-normal_max_tokens_hard = normal_max_ch_soft * 1.2 / 4
-brief_max_tokens_hard = brief_max_ch_soft * 1.2 / 4
+normal_max_tokens_hard = int(normal_max_ch_soft * 1.2 / 4)
+brief_max_tokens_hard = int(brief_max_ch_soft * 1.2 / 4)
 
 normal_prompt = f'''Answer the user prompt below "---" line. Never exceed {normal_max_ch_soft} characters / {normal_word_limit} words.
 ---
@@ -86,95 +83,43 @@ Blue
 Considering all the above, give a brief answer to the prompt and normal answer below:
 '''
 
-def chunk_generator(llm_call, questions, chunk_size=25):
-    ''' Generator that yields chunks of questions, normal answers, and brief answers. '''
-    for i in range(0, len(questions), chunk_size):
-        chunk_questions = questions[i:i+chunk_size]
-        normal_answers = llm_normal_answers(llm_call, chunk_questions)
-        brief_answers = llm_brief_answers(llm_call, chunk_questions, normal_answers)
-        for q, na, ba in zip(chunk_questions, normal_answers, brief_answers):
-            yield {"Question": q, "Answer-normal": na, "Answer-short": ba}
+def get_brief_prompt(example):
+    q = example['question']
+    na = example['Answer-normal']
+    return f"{brief_prompt}Question: {q}\nNormal answer: {na}"
 
-def smart_chunker(llm_call, questions:list, skip_rows:int, out_jsonl:str, 
-                  q_chunk_big=100, q_chunk_small=20, n_chunk_max_ch=22_000):
-    ''' Similar to chunk_generator, but minimizes the inefficiency of long questions and 
-    long outputs (from the first LLM call) adding padding to shorter questions and outputs. 
-    It works by breaking into smaller chunks and chunks that don't exceed chunk_max_ch. '''
+def process_dataset(tokenizer, model, 
+                    ds: datasets.Dataset, out_jsonl:str) -> None:
+    ''' Process the 'lmsys/chatbot_arena_conversations' dataset in chunks and save 
+    each chunk to a JSONL file. '''
 
-    # Positions of columns in table.
-    p_id, p_question, p_normal, p_size, p_brief = 0, 1, 2, 3, 4 
+    ds = ds.select_columns(['question_id', 'conversation_a']) 
+    ds = ds.map(lambda example: {'question': example['conversation_a'][0]['content']}) 
+    ds = ds.map(lambda example: {'prompt': normal_prompt + example['question']})
 
-    # Slice into big chunks of questions.
-    for i in range(skip_rows, len(questions), q_chunk_big):
+    n_rows = len(ds)
+    start_time = time.time()
+    current_example = 0
+    print(f"Example {current_example} of {n_rows}... ", end='')
 
-        # Create table with id, question, normal, size, and brief columns.
-        table = [[id, question, None, None, None] 
-                for id, question in enumerate(questions[i:i+q_chunk_big])]
-        chunk_len = len(table) # Last chunk can be smaller than q_chunk_big.
+    for norm_c in llm.process_variable_chunks(
+        ds, tokenizer, model, 100, 5000, normal_max_tokens_hard):
+
+        norm_c = norm_c.select_columns(['question_id', 'question', 'answer'])
+        norm_c = norm_c.rename_column('answer', 'Answer-normal')
+        norm_c = norm_c.map(lambda example: {'prompt': get_brief_prompt(example)})
         
-        timer = utils.Timer(f"Question {i} of {len(questions)}...")
-        with timer:
-
-            # Slice into small chunks of questions.
-            for j in range(0, chunk_len, q_chunk_small):
-                # Call LLM for normal answers of the small chunks.
-                table_slice = table[j:j+q_chunk_small]
-                normal_answers = llm_normal_answers(llm_call, [row[p_question] for row in table_slice])
-                for k, normal in enumerate(normal_answers):
-                    table_slice[k][p_normal] = normal
-            
-            # Estimate the character size of brief queries.
-            brief_query_const = len(brief_prompt) + brief_max_ch_soft
-            for row in table:
-                row[p_size] = brief_query_const + len(row[p_question]) + len(row[p_normal]) 
-
-            # Sort by size.
-            table.sort(key=lambda x: x[p_size])
-
-            # Create chunks of brief calls that don't exceed n_chunk_max_ch.
-            n_ch = 0
-            start = 0
-            for j in range(chunk_len):
-                n_ch += table[j][p_size]
-                if n_ch>n_chunk_max_ch or j==chunk_len-1:
-                    # Call LLM for brief answers of the chunk.
-                    table_slice = table[start:j+1]
-                    brief_answers = llm_brief_answers(
-                        llm_call, 
-                        [row[p_question] for row in table_slice], 
-                        [row[p_normal] for row in table_slice])
-                    for k, brief in enumerate(brief_answers):
-                        table_slice[k][p_brief] = brief
-                    # Reset counters.
-                    n_ch = 0
-                    start = j+1
-
-            # Sort by id.
-            table.sort(key=lambda x: x[p_id])
-
-            # Create a Dataset from table.
-            out_ds = datasets.Dataset.from_list(
-                [{"Question": row[p_question], 
-                  "Answer-short": row[p_brief], 
-                  "Answer-normal": row[p_normal]}
-                 for row in table])
-            # Append to JSONL.
+        for brief_c in llm.process_variable_chunks(
+            norm_c, tokenizer, model, 100, 5000, brief_max_tokens_hard):
+            brief_c = brief_c.select_columns(['question_id', 'question', 'answer', 'Answer-normal'])
+            brief_c = brief_c.rename_column('answer', 'Answer-short')
             with open(out_jsonl, 'ab') as f:
-                out_ds.to_json(f, lines=True)   
+                brief_c.to_json(f, lines=True)
 
-        print(f"Time/sample: {timer.last_elapsed_time/chunk_len:.2f} sec")            
-
-def llm_normal_answers(llm_call, questions):
-    messages = [ [{"role": "user", 
-                   "content": normal_prompt+q}] 
-                for q in questions ]
-    return llm_call(messages, normal_max_tokens_hard)
-
-def llm_brief_answers(llm_call, questions, normal_answers):
-    messages = [ [{"role": "user", 
-                   "content": f"{brief_prompt}Question: {q}\nNormal answer: {na}"}] 
-                for q, na in zip(questions, normal_answers) ]
-    return llm_call(messages, brief_max_tokens_hard)
+        print(f"time/sample: {(time.time()-start_time)/len(norm_c):.2f} sec") 
+        start_time = time.time()
+        current_example += len(norm_c)
+        print(f"Example {current_example} of {n_rows}... ", end='')
         
 if __name__ == '__main__':
     main_cli()
