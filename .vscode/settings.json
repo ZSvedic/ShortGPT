@@ -1,3 +1,14 @@
 {
     "python.analysis.typeCheckingMode": "off", // Disable Pylance type checking if you prefer mypy
+    "python.testing.pytestEnabled": false,
+    "python.testing.unittestEnabled": true,
+    "python.testing.unittestArgs": [
+        // Start directory for discovering tests
+        "-s",
+        "./2_brevity_benchmark",
+        // Pattern to match test files
+        "-p",
+        "*_test.py"
+    ],
+    "python.envFile": "${workspaceFolder}/.env",
 }
