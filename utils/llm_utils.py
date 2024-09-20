@@ -94,7 +94,7 @@ def chunk_call_llm(chunk: datasets.Dataset, tokenizer, model,
         lambda example, idx: {'answer': answers[idx]},
         with_indices=True)
 
-def process_variable_chunks(dataset: datasets.Dataset, 
+def call_variable_chunks(dataset: datasets.Dataset, 
                             tokenizer,
                             model,
                             big_chunk_size: int,

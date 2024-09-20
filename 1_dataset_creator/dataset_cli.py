@@ -1,10 +1,10 @@
-import time
 import click
 import torch
+import time
 import datasets
+from datasets.utils import disable_progress_bar
 import utils.llm_utils as llm
 import utils.utils as utils
-from datasets.utils import disable_progress_bar
 
 manual = '''CLI py app that gets input dataset name and outputs a JSONL file with the dataset containing normal and short answers. App is called as:
 
@@ -25,13 +25,6 @@ def main_cli(input_dataset: str, output_jsonl: str, mode: str):
     # Disable progress bars for map() and similar.
     disable_progress_bar()
 
-    # Load the tokenizer and model.
-    # model_name = 'meta-llama/Meta-Llama-3.1-8B-Instruct'
-    # model_name = 'microsoft/Phi-3-small-128k-instruct'
-    model_name = 'microsoft/Phi-3-mini-4k-instruct'
-    tokenizer, model = llm.load_tokenizer_and_model(model_name)
-    print(f'Allocated GPU memory: {torch.cuda.memory_allocated() / (1024*1024):,.1f} MB')
-    
     # If mode is 'continue', open the file and determine the number of rows to skip.
     skip_rows = 0
     if mode == 'continue':
@@ -45,7 +38,14 @@ def main_cli(input_dataset: str, output_jsonl: str, mode: str):
         # If mode is 'restart', reset the output file.
         with open(output_jsonl, 'w') as f: pass
 
-    # Process questions in chunks and save each chunk to a JSONL file.
+    # Load the tokenizer and model.
+    # model_name = 'meta-llama/Meta-Llama-3.1-8B-Instruct'
+    # model_name = 'microsoft/Phi-3-small-128k-instruct'
+    model_name = 'microsoft/Phi-3-mini-4k-instruct'
+    tokenizer, model = llm.load_tokenizer_and_model(model_name)
+    print(f'Allocated GPU memory: {torch.cuda.memory_allocated() / (1024*1024):,.1f} MB')
+
+    # Process rows in chunks and save each chunk to a JSONL file.
     process_dataset(tokenizer, model, dataset, output_jsonl)
 
 # Word limits for normal and brief answers.
@@ -83,9 +83,9 @@ Blue
 Considering all the above, give a brief answer to the prompt and normal answer below:
 '''
 
-def get_brief_prompt(example):
+def get_brief_prompt(example) -> str:
     q = example['question']
-    na = example['Answer-normal']
+    na = example['answer-normal']
     return f"{brief_prompt}Question: {q}\nNormal answer: {na}"
 
 def process_dataset(tokenizer, model, 
@@ -102,17 +102,17 @@ def process_dataset(tokenizer, model,
     current_example = 0
     print(f"Example {current_example} of {n_rows}... ", end='')
 
-    for norm_c in llm.process_variable_chunks(
+    for norm_c in llm.call_variable_chunks(
         ds, tokenizer, model, 100, 5000, normal_max_tokens_hard):
 
         norm_c = norm_c.select_columns(['question_id', 'question', 'answer'])
-        norm_c = norm_c.rename_column('answer', 'Answer-normal')
+        norm_c = norm_c.rename_column('answer', 'answer-normal')
         norm_c = norm_c.map(lambda example: {'prompt': get_brief_prompt(example)})
         
-        for brief_c in llm.process_variable_chunks(
+        for brief_c in llm.call_variable_chunks(
             norm_c, tokenizer, model, 100, 5000, brief_max_tokens_hard):
-            brief_c = brief_c.select_columns(['question_id', 'question', 'answer', 'Answer-normal'])
-            brief_c = brief_c.rename_column('answer', 'Answer-short')
+            brief_c = brief_c.select_columns(['question_id', 'question', 'answer', 'answer-normal'])
+            brief_c = brief_c.rename_column('answer', 'answer-short')
             with open(out_jsonl, 'ab') as f:
                 brief_c.to_json(f, lines=True)
 
