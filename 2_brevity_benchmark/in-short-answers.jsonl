@@ -1,20 +1,20 @@
-{"ID": "101", "question": "How much is 2+3?", "answer-chatgpt": "Expression 2+3 is equal to 5.", "answer-short": "5"}
-{"ID": "102", "question": "What is the color of the sky?", "answer-chatgpt": "The sky is blue", "answer-short": "sky"}
-{"ID": "103", "question": "What is the capital of France?", "answer-chatgpt": "The capital of France is Paris.", "answer-short": ""}
-{"ID": "104", "question": "What is the boiling point of water?", "answer-chatgpt": "The boiling point of water is 100 degrees Celsius.", "answer-short": "winner"}
-{"ID": "105", "question": "Who wrote 'To Kill a Mockingbird'?", "answer-chatgpt": "'To Kill a Mockingbird' was written by Harper Lee.", "answer-short": "Lee"}
-{"ID": "106", "question": "What is the largest planet in our solar system?", "answer-chatgpt": "The largest planet in our solar system is Jupiter.", "answer-short": "Jupiter"}
-{"ID": "107", "question": "What is the chemical symbol for gold?", "answer-chatgpt": "The chemical symbol for gold is Au.", "answer-short": "Au"}
-{"ID": "108", "question": "How many continents are there?", "answer-chatgpt": "There are seven continents.", "answer-short": "7"}
-{"ID": "109", "question": "What is the speed of light?", "answer-chatgpt": "The speed of light is approximately 299,792 kilometers per second.", "answer-short": "299,792 km/s"}
-{"ID": "110", "question": "Who painted the Mona Lisa?", "answer-chatgpt": "The Mona Lisa was painted by Leonardo da Vinci.", "answer-short": "Leonardo da Vinci"}
-{"ID": "111", "question": "What is the smallest prime number?", "answer-chatgpt": "The smallest prime number is 2.", "answer-short": "2"}
-{"ID": "112", "question": "What is the main ingredient in guacamole?", "answer-chatgpt": "The main ingredient in guacamole is avocado.", "answer-short": "avocado"}
-{"ID": "113", "question": "What is the square root of 64?", "answer-chatgpt": "The square root of 64 is 8.", "answer-short": "8"}
-{"ID": "114", "question": "What is the currency of Japan?", "answer-chatgpt": "The currency of Japan is the yen.", "answer-short": "yen"}
-{"ID": "115", "question": "Who discovered penicillin?", "answer-chatgpt": "Penicillin was discovered by Alexander Fleming.", "answer-short": "Alexander Fleming"}
-{"ID": "116", "question": "What is the tallest mountain in the world?", "answer-chatgpt": "The tallest mountain in the world is Mount Everest.", "answer-short": "Mount Everest"}
-{"ID": "117", "question": "What is the primary language spoken in Brazil?", "answer-chatgpt": "The primary language spoken in Brazil is Portuguese.", "answer-short": "Portuguese"}
-{"ID": "118", "question": "What is the freezing point of water?", "answer-chatgpt": "The freezing point of water is 0 degrees Celsius.", "answer-short": "0°C"}
-{"ID": "119", "question": "What is the largest mammal?", "answer-chatgpt": "The largest mammal is the blue whale.", "answer-short": "blue whale"}
-{"ID": "120", "question": "What is the capital of Japan?", "answer-chatgpt": "The capital of Japan is Tokyo.", "answer-short": "Tokyo"}
+{"id": "101", "question": "How much is 2+3?", "answer-chatgpt": "Expression 2+3 is equal to 5.", "answer-short": "5"}
+{"id": "102", "question": "What is the color of the sky?", "answer-chatgpt": "The sky is blue", "answer-short": "sky"}
+{"id": "103", "question": "What is the capital of France?", "answer-chatgpt": "The capital of France is Paris.", "answer-short": ""}
+{"id": "104", "question": "What is the boiling point of water?", "answer-chatgpt": "The boiling point of water is 100 degrees Celsius.", "answer-short": "winner"}
+{"id": "105", "question": "Who wrote 'To Kill a Mockingbird'?", "answer-chatgpt": "'To Kill a Mockingbird' was written by Harper Lee.", "answer-short": "Lee"}
+{"id": "106", "question": "What is the largest planet in our solar system?", "answer-chatgpt": "The largest planet in our solar system is Jupiter.", "answer-short": "Jupiter"}
+{"id": "107", "question": "What is the chemical symbol for gold?", "answer-chatgpt": "The chemical symbol for gold is Au.", "answer-short": "Au"}
+{"id": "108", "question": "How many continents are there?", "answer-chatgpt": "There are seven continents.", "answer-short": "7"}
+{"id": "109", "question": "What is the speed of light?", "answer-chatgpt": "The speed of light is approximately 299,792 kilometers per second.", "answer-short": "299,792 km/s"}
+{"id": "110", "question": "Who painted the Mona Lisa?", "answer-chatgpt": "The Mona Lisa was painted by Leonardo da Vinci.", "answer-short": "Leonardo da Vinci"}
+{"id": "111", "question": "What is the smallest prime number?", "answer-chatgpt": "The smallest prime number is 2.", "answer-short": "2"}
+{"id": "112", "question": "What is the main ingredient in guacamole?", "answer-chatgpt": "The main ingredient in guacamole is avocado.", "answer-short": "avocado"}
+{"id": "113", "question": "What is the square root of 64?", "answer-chatgpt": "The square root of 64 is 8.", "answer-short": "8"}
+{"id": "114", "question": "What is the currency of Japan?", "answer-chatgpt": "The currency of Japan is the yen.", "answer-short": "yen"}
+{"id": "115", "question": "Who discovered penicillin?", "answer-chatgpt": "Penicillin was discovered by Alexander Fleming.", "answer-short": "Alexander Fleming"}
+{"id": "116", "question": "What is the tallest mountain in the world?", "answer-chatgpt": "The tallest mountain in the world is Mount Everest.", "answer-short": "Mount Everest"}
+{"id": "117", "question": "What is the primary language spoken in Brazil?", "answer-chatgpt": "The primary language spoken in Brazil is Portuguese.", "answer-short": "Portuguese"}
+{"id": "118", "question": "What is the freezing point of water?", "answer-chatgpt": "The freezing point of water is 0 degrees Celsius.", "answer-short": "0°C"}
+{"id": "119", "question": "What is the largest mammal?", "answer-chatgpt": "The largest mammal is the blue whale.", "answer-short": "blue whale"}
+{"id": "120", "question": "What is the capital of Japan?", "answer-chatgpt": "The capital of Japan is Tokyo.", "answer-short": "Tokyo"}

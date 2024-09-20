@@ -1,38 +1,46 @@
 import unittest
 import pandas as pd
-from benchmark_cli import evaluate
+from benchmark_cli import main_logic
 
 class TestEvaluateLLMFunction(unittest.TestCase):
     def test_evaluate_llm(self):
-        in_df = pd.read_json("2_brevity_benchmark/in-short-answers.jsonl", 
+        # Run the main_cli function on a small dataset.
+        main_logic("2_brevity_benchmark/in-short-answers.jsonl", 
+                   "2_brevity_benchmark/out-best.jsonl", 
+                   "meta-llama/Meta-Llama-3.1-8B-Instruct", 
+                   "restart")
+        
+        # Load the output file as Pandas DataFrame.
+        out_df = pd.read_json("2_brevity_benchmark/out-best.jsonl", 
                              orient='records', dtype=False, lines=True) 
-        out_df = evaluate(in_df, "meta-llama/Meta-Llama-3.1-8B-Instruct")
+       
+        # Check the output DataFrame.
         expected = [
-            ("101", "Short"), 
-            ("102", "ChatGPT"),
-            ("103", "ChatGPT"),
-            ("104", "ChatGPT"),
-            ("105", "ChatGPT"),
-            ("106", "Short"),
-            ("107", "Short"),
-            ("108", "Short"),
-            ("109", "Short"),
-            ("110", "Short"),
-            ("111", "Short"),
-            ("112", "Short"),
-            ("113", "Short"),
-            ("114", "Short"),
-            ("115", "Short"),
-            ("116", "Short"),
-            ("117", "Short"),
-            ("118", "Short"),
-            ("119", "Short"),
-            ("120", "Short"),
+            ("101", "short"), 
+            ("102", "chatgpt"),
+            ("103", "chatgpt"),
+            ("104", "chatgpt"),
+            ("105", "chatgpt"),
+            ("106", "short"),
+            ("107", "short"),
+            ("108", "short"),
+            ("109", "short"),
+            ("110", "short"),
+            ("111", "short"),
+            ("112", "short"),
+            ("113", "short"),
+            ("114", "short"),
+            ("115", "short"),
+            ("116", "short"),
+            ("117", "short"),
+            ("118", "short"),
+            ("119", "short"),
+            ("120", "short"),
         ]
         for i, row in out_df.iterrows():
             ex_id, ex_best = expected[i]
-            self.assertEqual(row["ID"], ex_id)
-            self.assertEqual(row["Name-best"], ex_best)
+            self.assertEqual(row["id"], ex_id)
+            self.assertEqual(row["name-best"], ex_best)
 
 if __name__ == '__main__':
     unittest.main()

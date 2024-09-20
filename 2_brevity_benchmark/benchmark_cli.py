@@ -1,20 +1,22 @@
-import typing
 import click
-import pandas as pd
+import time
+import torch
+import datasets
+from datasets.utils import disable_progress_bar
 import utils.llm_utils as llm
 
 manual = '''CLI py app that inputs a JSONL file where each row has 2+ answers to a question and outputs a JSONL file that has the shortest answer to the question that still contains the non-trivial answer. App is called as:
 
-python benchmark_cli.py in_jsonl out_jsonl evaluator
+python benchmark_cli.py in_jsonl out_jsonl evaluator continue/restart
 
 Where the evaluator is either "length" or the name of the HuggingFace LLM model.
 For example:
 
-python benchmark_cli.py in-short-answers.jsonl out-best.jsonl length
+python benchmark_cli.py in-short-answers.jsonl out-best.jsonl length restart
 
 will compare based on length, while:
 
-python benchmark_cli.py in-short-answers.jsonl out-best.jsonl meta-llama/Meta-Llama-3.1-8B-Instruct
+python benchmark_cli.py in-short-answers.jsonl out-best.jsonl meta-llama/Meta-Llama-3.1-8B-Instruct continue
 
 will use Llama-3.1-8B to evaluate the best answers.
 
@@ -47,58 +49,44 @@ All winners average length: 8.0
 @click.argument('in_jsonl', type=click.Path(exists=True))
 @click.argument('out_jsonl', type=click.Path())
 @click.argument('evaluator', type=str)
-def main_cli(in_jsonl: str, 
-             out_jsonl: str, 
-             evaluator: str) -> None:
-    
-    in_df = pd.read_json(in_jsonl, orient='records', dtype=False, lines=True)
+@click.argument('mode', type=click.Choice(['continue', 'restart'], case_sensitive=False))
+def main_click(in_jsonl: str, out_jsonl: str, evaluator: str, mode: str) -> None:
+    ''' Main called by the click library (CLI). '''
+    # evaluator = 'microsoft/Phi-3-mini-4k-instruct'
+    main_logic(in_jsonl, out_jsonl, evaluator, mode)
 
-    out_df = evaluate(in_df, evaluator)
+def main_logic(in_jsonl: str, out_jsonl: str, evaluator: str, mode: str) -> None:
+    ''' Main called by the Click/CLI and unit tests. '''
 
-    out_df.to_json(out_jsonl, orient='records', lines=True)
+    # Load the dataset from the JSON file.
+    dataset = datasets.load_dataset('json', data_files=in_jsonl, split='train')
+    # Disable progress bars for map() and similar.
+    disable_progress_bar()
 
-    print_summary(out_df)
-   
-def evaluate(in_df: pd.DataFrame, 
-             evaluator: str) -> pd.DataFrame:
-    ''' Gets descriptive names of in_df answer columns, finds the best answer using evaluator, 
-    and returns a DataFrame with the best answer for each question. '''
+    # If mode is 'continue', open the file and determine the number of rows to skip.
+    skip_rows = 0
+    if mode == 'continue':
+        try:
+            with open(out_jsonl, 'r') as f:
+                skip_rows = len(f.readlines())
+            dataset = dataset.select(range(skip_rows, len(dataset)))
+        except FileNotFoundError:
+            pass
+    elif mode == 'restart': 
+        # If mode is 'restart', reset the output file.
+        with open(out_jsonl, 'w') as f: pass
 
-    # Parse answer column names.
-    prefix = "Answer-"
-    answer_cols = list(in_df.columns[in_df.columns.str.startswith(prefix)])
-    answer_names = [col[len(prefix):] for col in answer_cols]
+    answer_cols, answer_names = parse_answer_columns(dataset)
 
-    # Create output DataFrame.
-    out_df = pd.DataFrame(columns=["Question", "Name-best", "Answer-best"])
-    out_df["Question"] = in_df["Question"]
-    # Optional ID column.
-    if "ID" in in_df.columns:
-        out_df["ID"] = in_df["ID"]
-        # Reorder columns.
-        out_df = out_df[["ID", "Question", "Name-best", "Answer-best"]]
-        
-    if evaluator == "length":
-        evaluate_length(in_df, out_df, answer_cols, answer_names)
-    else:
-        tokenizer, model = llm.load_tokenizer_and_model(evaluator)
-        llm_call = lambda messages: llm.batch_call_llm(tokenizer, model, messages, 50)
-        evaluate_llm(llm_call, in_df, out_df, answer_cols, answer_names)
+    # Load the tokenizer and model.
+    tokenizer, model = llm.load_tokenizer_and_model(evaluator)
+    print(f'Allocated GPU memory: {torch.cuda.memory_allocated() / (1024*1024):,.1f} MB')
 
-    return out_df
+    # Process rows in chunks and save each chunk to a JSONL file.
+    process_dataset(tokenizer, model, answer_cols, answer_names, dataset, out_jsonl,
+                    100, 5000, 50)
 
-def evaluate_length(in_df: pd.DataFrame, 
-                    out_df: pd.DataFrame, 
-                    answer_cols: list, 
-                    answer_names: list) -> None:
-    ''' Evaluate the best answer based on the shortest length. '''
-    for i, row in in_df.iterrows():
-        answers = [row[col].strip() for col in answer_cols]
-        id_min = min(range(len(answers)), key=lambda i: len(answers[i]))
-        out_df.at[i, "Name-best"] = answer_names[id_min]
-        out_df.at[i, "Answer-best"] = answers[id_min]
-
-prompt = ''' Given a question and multiple answers, your task is to select the briefest answer that still answers the question. Examples between --- lines:
+prompt_briefest_answer = ''' Given a question and multiple answers, your task is to select the briefest answer that still answers the question. Examples between --- lines:
 --- Example 1 ---
 Input:
 Q: How much is 2+3?
@@ -128,46 +116,59 @@ Note that:
 Given all this, what is the briefest answer to the question and answers below?
 '''
 
-def evaluate_llm(llm_call: typing.Callable[[list], list], 
-                 in_df: pd.DataFrame, 
-                 out_df: pd.DataFrame, 
-                 answer_cols: list, 
-                 answer_names: list) -> None:
-    ''' Same as evaluate_length, but uses the LLM model to evaluate the best answer. '''
+def parse_answer_columns(in_ds: datasets.Dataset) -> tuple:
+    ''' Parse answer column names. '''
+    prefix = "answer-"
+    answer_cols = [col for col in in_ds.column_names if col.startswith(prefix)]
+    answer_names = [col[len(prefix):] for col in answer_cols]
+    return answer_cols, answer_names
 
-    messages, answers = [], []
-    for _, row in in_df.iterrows():
-        question = row["Question"]
+def get_options_and_prompt(ds: datasets.Dataset, answer_cols: list, 
+                           answer_names: list) -> tuple:
+    ''' Get options and prompt for all examples in the dataset. '''
+    rows_options, row_prompts = [], []
+    for row in ds:
         options = [row[col].strip() for col in answer_cols]
-        input_text = f'Q: {question}\n' +\
+        input_text = f'Q: {row["question"]}\n' +\
             '\n'.join([f'A{i+1}: {options[i]}' for i in range(len(options))]) + \
             '\nBriefest answer: '
-        messages.append([{"role": "user", "content": prompt+input_text}]) 
-        answers.append(options)
+        rows_options.append(options)
+        row_prompts.append(prompt_briefest_answer + input_text)
+    return rows_options, row_prompts 
 
-    output_texts = llm_call(messages)
+def process_dataset(tokenizer, model, answer_cols: list, answer_names: list,
+                    ds: datasets.Dataset, out_jsonl:str,
+                    big_chunk_size: int, small_chunk_tokens: int, max_gen_tokens: int) -> None:
+    ''' Process the input dataset in chunks and save each chunk to a JSONL file. '''
 
-    for i, row in in_df.iterrows():
-        id_min = int(output_texts[i].strip()[1:])-1
-        out_df.at[i, "Name-best"] = answer_names[id_min]
-        out_df.at[i, "Answer-best"] = answers[i][id_min]
-
-def print_summary(out_df: pd.DataFrame) -> None:
-    ''' Print a summary of the results. '''
+    n_rows = len(ds)
+    start_time = time.time()
+    current_example = 0
+    print(f"Example {current_example} of {n_rows}... ", end='')
     
-    # Group by "Name-best" and perform the aggregations
-    summary = out_df.groupby("Name-best").agg(
-        Wins=('Name-best', 'count'),
-        Win_avg_length=('Answer-best', lambda x: round(x.str.len().mean(), 1)),
-        Win_example=('Answer-best', 'first'),
-    )
-    # Calculate winning percentages.
-    summary['Wins %'] = (summary['Wins'] / len(out_df)) * 100
-    # Reorder columns.
-    summary = summary[['Wins', 'Wins %', 'Win_avg_length', 'Win_example']]
+    for big_chunk in llm.fixed_chunker(ds, big_chunk_size):
+        rows_options, row_prompts = get_options_and_prompt(big_chunk, answer_cols, answer_names)
+        big_chunk = big_chunk.map(lambda _, idx: {'prompt': row_prompts[idx]}, with_indices=True)
+        
+        ids_min = []
+        for small_chunk in llm.call_variable_chunks(
+            big_chunk, tokenizer, model, big_chunk_size, small_chunk_tokens, max_gen_tokens):
+            for row in small_chunk:
+                ids_min.append(int(row['answer'].strip()[1:])-1)
 
-    print(summary)
-    print(f"All winners average length: {round(out_df['Answer-best'].str.len().mean(), 1)}")
- 
+        big_chunk = big_chunk.map(
+            lambda _, idx: {'name-best': answer_names[ids_min[idx]]}, with_indices=True)
+        big_chunk = big_chunk.map(
+            lambda _, idx: {'answer-best': rows_options[idx][ids_min[idx]]}, with_indices=True)
+        big_chunk = big_chunk.select_columns(['id', 'question', 'name-best', 'answer-best'])
+        
+        with open(out_jsonl, 'ab') as f:
+            big_chunk.to_json(f, lines=True)
+
+        print(f"time/sample: {(time.time()-start_time)/len(big_chunk):.2f} sec") 
+        start_time = time.time()
+        current_example += len(big_chunk)
+        print(f"Example {current_example} of {n_rows}... ", end='')
+
 if __name__ == '__main__':
-    main_cli()
+    main_click()
