@@ -2,7 +2,7 @@
 {"id":"102","question":"What is the color of the sky?","name-best":"chatgpt","answer-best":"The sky is blue"}
 {"id":"103","question":"What is the capital of France?","name-best":"chatgpt","answer-best":"The capital of France is Paris."}
 {"id":"104","question":"What is the boiling point of water?","name-best":"chatgpt","answer-best":"The boiling point of water is 100 degrees Celsius."}
-{"id":"105","question":"Who wrote 'To Kill a Mockingbird'?","name-best":"chatgpt","answer-best":"'To Kill a Mockingbird' was written by Harper Lee."}
+{"id":"105","question":"Who wrote 'To Kill a Mockingbird'?","name-best":"short","answer-best":"Lee Harper"}
 {"id":"106","question":"What is the largest planet in our solar system?","name-best":"short","answer-best":"Jupiter"}
 {"id":"107","question":"What is the chemical symbol for gold?","name-best":"short","answer-best":"Au"}
 {"id":"108","question":"How many continents are there?","name-best":"short","answer-best":"7"}

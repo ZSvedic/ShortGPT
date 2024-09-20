@@ -52,7 +52,6 @@ All winners average length: 8.0
 @click.argument('mode', type=click.Choice(['continue', 'restart'], case_sensitive=False))
 def main_click(in_jsonl: str, out_jsonl: str, evaluator: str, mode: str) -> None:
     ''' Main called by the click library (CLI). '''
-    # evaluator = 'microsoft/Phi-3-mini-4k-instruct'
     main_logic(in_jsonl, out_jsonl, evaluator, mode)
 
 def main_logic(in_jsonl: str, out_jsonl: str, evaluator: str, mode: str) -> None:
@@ -84,34 +83,34 @@ def main_logic(in_jsonl: str, out_jsonl: str, evaluator: str, mode: str) -> None
 
     # Process rows in chunks and save each chunk to a JSONL file.
     process_dataset(tokenizer, model, answer_cols, answer_names, dataset, out_jsonl,
-                    100, 5000, 50)
+                    100, 5000, 10)
 
 prompt_briefest_answer = ''' Given a question and multiple answers, your task is to select the briefest answer that still answers the question. Examples between --- lines:
 --- Example 1 ---
 Input:
 Q: How much is 2+3?
-A1: Expression 2+3 is equal to 5.
-A2: 5.
+A: Expression 2+3 is equal to 5.
+B: 5.
 Output:
-A2
+B
 --- Example 2 ---
 Input:
 Q: What is the color of the sky?
-A1: The sky is blue.
-A2: sky
+A: The sky is blue.
+B: sky
 Output:
-A1
+A
 --- Example 3 ---
 Input:
 Q: What is Lorem Ipsum?
-A1: Lorem Ipsum is simply dummy text used in the printing and typesetting industry.
-A2: 
+A: Lorem Ipsum is simply dummy text used in the printing and typesetting industry.
+B: 
 Output: 
-A1
+A
 --- End of examples
 Note that:
 - The briefest answer is not the shortest if it doesn't answer the question (example 2) or is empty or invalid (example 3). 
-- You always output just the ID of a question (A1, A2, etc.), nothing else, like spaces or explanations.
+- You always output just the ID of a question (A, B, etc.), nothing else, like spaces or explanations.
 
 Given all this, what is the briefest answer to the question and answers below?
 '''
@@ -123,18 +122,22 @@ def parse_answer_columns(in_ds: datasets.Dataset) -> tuple:
     answer_names = [col[len(prefix):] for col in answer_cols]
     return answer_cols, answer_names
 
-def get_options_and_prompt(ds: datasets.Dataset, answer_cols: list, 
-                           answer_names: list) -> tuple:
+def get_options_and_prompts(ds: datasets.Dataset, answer_cols: list, 
+                            answer_names: list) -> tuple:
     ''' Get options and prompt for all examples in the dataset. '''
     rows_options, row_prompts = [], []
     for row in ds:
         options = [row[col].strip() for col in answer_cols]
         input_text = f'Q: {row["question"]}\n' +\
-            '\n'.join([f'A{i+1}: {options[i]}' for i in range(len(options))]) + \
+            '\n'.join([f'{chr(ord("A")+i)}: {options[i]}' for i in range(len(options))]) + \
             '\nBriefest answer: '
         rows_options.append(options)
         row_prompts.append(prompt_briefest_answer + input_text)
     return rows_options, row_prompts 
+
+def get_answer_idx(answer: str) -> int:
+    ''' Get the index of the answer from the answer string. '''
+    return ord(answer.strip())-ord('A')
 
 def process_dataset(tokenizer, model, answer_cols: list, answer_names: list,
                     ds: datasets.Dataset, out_jsonl:str,
@@ -147,14 +150,14 @@ def process_dataset(tokenizer, model, answer_cols: list, answer_names: list,
     print(f"Example {current_example} of {n_rows}... ", end='')
     
     for big_chunk in llm.fixed_chunker(ds, big_chunk_size):
-        rows_options, row_prompts = get_options_and_prompt(big_chunk, answer_cols, answer_names)
+        rows_options, row_prompts = get_options_and_prompts(big_chunk, answer_cols, answer_names)
         big_chunk = big_chunk.map(lambda _, idx: {'prompt': row_prompts[idx]}, with_indices=True)
         
         ids_min = []
         for small_chunk in llm.call_variable_chunks(
             big_chunk, tokenizer, model, big_chunk_size, small_chunk_tokens, max_gen_tokens):
             for row in small_chunk:
-                ids_min.append(int(row['answer'].strip()[1:])-1)
+                ids_min.append(get_answer_idx(row['answer']))
 
         big_chunk = big_chunk.map(
             lambda _, idx: {'name-best': answer_names[ids_min[idx]]}, with_indices=True)

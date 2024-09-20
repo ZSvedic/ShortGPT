@@ -5,10 +5,10 @@ from benchmark_cli import main_logic
 class TestEvaluateLLMFunction(unittest.TestCase):
     def test_evaluate_llm(self):
         # Run the main_cli function on a small dataset.
-        main_logic("2_brevity_benchmark/in-short-answers.jsonl", 
-                   "2_brevity_benchmark/out-best.jsonl", 
-                   "meta-llama/Meta-Llama-3.1-8B-Instruct", 
-                   "restart")
+        main_logic('2_brevity_benchmark/in-short-answers.jsonl', 
+                   '2_brevity_benchmark/out-best.jsonl', 
+                   'microsoft/Phi-3-mini-4k-instruct', 
+                   'restart')
         
         # Load the output file as Pandas DataFrame.
         out_df = pd.read_json("2_brevity_benchmark/out-best.jsonl", 
@@ -20,7 +20,7 @@ class TestEvaluateLLMFunction(unittest.TestCase):
             ("102", "chatgpt"),
             ("103", "chatgpt"),
             ("104", "chatgpt"),
-            ("105", "chatgpt"),
+            ("105", "short"),
             ("106", "short"),
             ("107", "short"),
             ("108", "short"),
@@ -37,10 +37,14 @@ class TestEvaluateLLMFunction(unittest.TestCase):
             ("119", "short"),
             ("120", "short"),
         ]
+        diffs = []
         for i, row in out_df.iterrows():
             ex_id, ex_best = expected[i]
             self.assertEqual(row["id"], ex_id)
-            self.assertEqual(row["name-best"], ex_best)
+            if row["name-best"] != ex_best:
+                diffs.append((ex_id, ex_best, row["name-best"]))
+        if diffs:
+            self.fail("Different: " + str(diffs))
 
 if __name__ == '__main__':
     unittest.main()

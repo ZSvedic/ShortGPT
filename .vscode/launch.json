@@ -27,11 +27,11 @@
         },
         {
             "name": "2...benchmark_cli.py",
-            "program": "${workspaceFolder}/2_brevity_benchmark/benchmark_cli_new.py",
+            "program": "${workspaceFolder}/2_brevity_benchmark/benchmark_cli.py",
             "args": [
                 "2_brevity_benchmark/in-short-answers.jsonl", 
                 "2_brevity_benchmark/out-best.jsonl", 
-                "meta-llama/Meta-Llama-3.1-8B-Instruct",
+                "microsoft/Phi-3-mini-4k-instruct",
                 "restart"
             ],
             "type": "debugpy",
