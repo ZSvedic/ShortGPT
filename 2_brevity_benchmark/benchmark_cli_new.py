@@ -73,10 +73,7 @@ def main_cli(in_jsonl: str, out_jsonl: str, evaluator: str, mode: str) -> None:
     answer_cols, answer_names = parse_answer_columns(dataset)
 
     # Load the tokenizer and model.
-    # model_name = 'meta-llama/Meta-Llama-3.1-8B-Instruct'
-    # model_name = 'microsoft/Phi-3-small-128k-instruct'
-    model_name = 'microsoft/Phi-3-mini-4k-instruct'
-    tokenizer, model = llm.load_tokenizer_and_model(model_name)
+    tokenizer, model = llm.load_tokenizer_and_model(evaluator)
     print(f'Allocated GPU memory: {torch.cuda.memory_allocated() / (1024*1024):,.1f} MB')
 
     # Process rows in chunks and save each chunk to a JSONL file.
@@ -147,19 +144,17 @@ def process_dataset(tokenizer, model, answer_cols: list, answer_names: list,
         rows_options, row_prompts = get_options_and_prompt(big_chunk, answer_cols, answer_names)
         big_chunk = big_chunk.map(lambda _, idx: {'prompt': row_prompts[idx]}, with_indices=True)
         
-        name_best, answer_best = [], []
+        ids_min = []
         for small_chunk in llm.call_variable_chunks(
             big_chunk, tokenizer, model, big_chunk_size, small_chunk_tokens, max_gen_tokens):
             for row in small_chunk:
-                id_min = int(row['answer'].strip()[1:])-1
-                name_best.append(answer_names[id_min])
-                answer_best.append(rows_options[id_min])
+                ids_min.append(int(row['answer'].strip()[1:])-1)
 
         big_chunk = big_chunk.map(
-            lambda _, idx: {'name-best': name_best[idx]}, with_indices=True)
+            lambda _, idx: {'name-best': answer_names[ids_min[idx]]}, with_indices=True)
         big_chunk = big_chunk.map(
-            lambda _, idx: {'answer-best': answer_best[idx]}, with_indices=True)
-        big_chunk = big_chunk.select_columns(['Question', 'Name-best', 'Answer-best'])
+            lambda _, idx: {'answer-best': rows_options[idx][ids_min[idx]]}, with_indices=True)
+        big_chunk = big_chunk.select_columns(['question', 'name-best', 'answer-best'])
         
         with open(out_jsonl, 'ab') as f:
             big_chunk.to_json(f, lines=True)
