@@ -66,9 +66,13 @@ def main_logic(in_jsonl: str, out_jsonl: str, evaluator: str, mode: str) -> None
         try:
             with open(out_jsonl, 'r') as f:
                 skip_rows = len(f.readlines())
-            dataset = dataset.select(range(skip_rows, len(dataset)))
         except FileNotFoundError:
             pass
+        if skip_rows < len(dataset):
+            dataset = dataset.select(range(skip_rows, len(dataset)))
+        else:
+            print(f"Can't continue {out_jsonl}, it has all rows.")
+            return
     elif mode == 'restart': 
         # If mode is 'restart', reset the output file.
         with open(out_jsonl, 'w') as f: pass
@@ -81,36 +85,44 @@ def main_logic(in_jsonl: str, out_jsonl: str, evaluator: str, mode: str) -> None
 
     # Process rows in chunks and save each chunk to a JSONL file.
     dataset = process_dataset(tokenizer, model, answer_cols, answer_names, 
-                              dataset, out_jsonl, 100, 5000, 10)
+                              dataset, out_jsonl, 100, 4000, 10)
     
     print_summary(dataset.to_pandas())
 
-prompt_briefest_answer = ''' Given a question and multiple answers, your task is to select the briefest answer that still answers the question. Examples between --- lines:
+prompt_briefest_answer = '''Given a question (Q) and multiple answers (A, B, etc.), your task is to select the briefest valid answer. Examples between --- lines:
 --- Example 1 ---
 Input:
 Q: How much is 2+3?
-A: Expression 2+3 is equal to 5.
-B: 5.
+A: 5.
+B: Expression 2+3 is equal to 5.
 Output:
-B
+A
 --- Example 2 ---
 Input:
 Q: What is the color of the sky?
-A: The sky is blue.
-B: sky
+A: sky
+B: The sky is blue.
 Output:
-A
+B
 --- Example 3 ---
 Input:
 Q: What is Lorem Ipsum?
-A: Lorem Ipsum is simply dummy text used in the printing and typesetting industry.
-B: 
+A: 
+B: Lorem Ipsum is simply dummy text used in the printing and typesetting industry.
 Output: 
+B
+--- Example 4 ---
+Input:
+porky pie meaning
+Output:
+A: Lie or exaggeration. 
+B: The term “porky pie” is British and Australian slang for a lie. It originates from Cockney rhyming slang, where “porky pie” rhymes with "lie". So, if someone says they’re telling a “porky pie,” it means they’re not telling the truth.
+Output:
 A
 --- End of examples
 Note that:
-- The briefest answer is not the shortest if it doesn't answer the question (example 2) or is empty or invalid (example 3). 
-- You always output just the id of a question (A, B, etc.), nothing else, like spaces or explanations.
+- The briefest answer is not the shortest one if it doesn't answer the question (example 2) or is empty or invalid (example 3). 
+- You always output just the option letter (A, B, etc.), no spaces, punctuations or explanations.
 
 Given all this, what is the briefest answer to the question and answers below?
 '''
@@ -174,7 +186,8 @@ def process_dataset(tokenizer, model, answer_cols: list, answer_names: list,
                             rows_options[idx][ids_min[idx]] if ids_min[idx] is not None # type: ignore
                             else 'ERROR'}, 
                             with_indices=True) 
-        big_chunk = big_chunk.select_columns(['question_id', 'question', 'name-best', 'answer-best'])
+        big_chunk = big_chunk.select_columns(
+            ['question_id', 'question', 'name-best', 'answer-best'] + answer_cols)
 
         all_chunks.append(big_chunk)
         
