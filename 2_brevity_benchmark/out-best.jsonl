@@ -1,20 +1,20 @@
-{"id":"101","question":"How much is 2+3?","name-best":"short","answer-best":"5"}
-{"id":"102","question":"What is the color of the sky?","name-best":"chatgpt","answer-best":"The sky is blue"}
-{"id":"103","question":"What is the capital of France?","name-best":"chatgpt","answer-best":"The capital of France is Paris."}
-{"id":"104","question":"What is the boiling point of water?","name-best":"chatgpt","answer-best":"The boiling point of water is 100 degrees Celsius."}
-{"id":"105","question":"Who wrote 'To Kill a Mockingbird'?","name-best":"short","answer-best":"Lee Harper"}
-{"id":"106","question":"What is the largest planet in our solar system?","name-best":"short","answer-best":"Jupiter"}
-{"id":"107","question":"What is the chemical symbol for gold?","name-best":"short","answer-best":"Au"}
-{"id":"108","question":"How many continents are there?","name-best":"short","answer-best":"7"}
-{"id":"109","question":"What is the speed of light?","name-best":"short","answer-best":"299,792 km\/s"}
-{"id":"110","question":"Who painted the Mona Lisa?","name-best":"short","answer-best":"Leonardo da Vinci"}
-{"id":"111","question":"What is the smallest prime number?","name-best":"short","answer-best":"2"}
-{"id":"112","question":"What is the main ingredient in guacamole?","name-best":"short","answer-best":"avocado"}
-{"id":"113","question":"What is the square root of 64?","name-best":"short","answer-best":"8"}
-{"id":"114","question":"What is the currency of Japan?","name-best":"short","answer-best":"yen"}
-{"id":"115","question":"Who discovered penicillin?","name-best":"short","answer-best":"Alexander Fleming"}
-{"id":"116","question":"What is the tallest mountain in the world?","name-best":"short","answer-best":"Mount Everest"}
-{"id":"117","question":"What is the primary language spoken in Brazil?","name-best":"short","answer-best":"Portuguese"}
-{"id":"118","question":"What is the freezing point of water?","name-best":"short","answer-best":"0\u00b0C"}
-{"id":"119","question":"What is the largest mammal?","name-best":"short","answer-best":"blue whale"}
-{"id":"120","question":"What is the capital of Japan?","name-best":"short","answer-best":"Tokyo"}
+{"question_id":"101","question":"How much is 2+3?","name-best":"short","answer-best":"5"}
+{"question_id":"102","question":"What is the color of the sky?","name-best":"chatgpt","answer-best":"The sky is blue"}
+{"question_id":"103","question":"What is the capital of France?","name-best":"chatgpt","answer-best":"The capital of France is Paris."}
+{"question_id":"104","question":"What is the boiling point of water?","name-best":"chatgpt","answer-best":"The boiling point of water is 100 degrees Celsius."}
+{"question_id":"105","question":"Who wrote 'To Kill a Mockingbird'?","name-best":"short","answer-best":"Lee Harper"}
+{"question_id":"106","question":"What is the largest planet in our solar system?","name-best":"short","answer-best":"Jupiter"}
+{"question_id":"107","question":"What is the chemical symbol for gold?","name-best":"short","answer-best":"Au"}
+{"question_id":"108","question":"How many continents are there?","name-best":"short","answer-best":"7"}
+{"question_id":"109","question":"What is the speed of light?","name-best":"short","answer-best":"299,792 km\/s"}
+{"question_id":"110","question":"Who painted the Mona Lisa?","name-best":"short","answer-best":"Leonardo da Vinci"}
+{"question_id":"111","question":"What is the smallest prime number?","name-best":"short","answer-best":"2"}
+{"question_id":"112","question":"What is the main ingredient in guacamole?","name-best":"short","answer-best":"avocado"}
+{"question_id":"113","question":"What is the square root of 64?","name-best":"short","answer-best":"8"}
+{"question_id":"114","question":"What is the currency of Japan?","name-best":"short","answer-best":"yen"}
+{"question_id":"115","question":"Who discovered penicillin?","name-best":"short","answer-best":"Alexander Fleming"}
+{"question_id":"116","question":"What is the tallest mountain in the world?","name-best":"short","answer-best":"Mount Everest"}
+{"question_id":"117","question":"What is the primary language spoken in Brazil?","name-best":"short","answer-best":"Portuguese"}
+{"question_id":"118","question":"What is the freezing point of water?","name-best":"short","answer-best":"0\u00b0C"}
+{"question_id":"119","question":"What is the largest mammal?","name-best":"short","answer-best":"blue whale"}
+{"question_id":"120","question":"What is the capital of Japan?","name-best":"short","answer-best":"Tokyo"}

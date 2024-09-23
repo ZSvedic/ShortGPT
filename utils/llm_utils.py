@@ -36,7 +36,8 @@ def batch_call_llm(tokenizer, model, messages: list, max_new_tok: int) -> list:
     with torch.no_grad():
         outputs_tokens = model.generate(
             inputs_tokenized, attention_mask=inputs_att_mask, 
-            max_new_tokens=max_new_tok, pad_token_id=tokenizer.eos_token_id)
+            max_new_tokens=max_new_tok, pad_token_id=tokenizer.eos_token_id,
+            temperature=0.0) # No randomness.
         
     # Output length (for each generated sequence)
     output_lengths = [len(output) for output in outputs_tokens]

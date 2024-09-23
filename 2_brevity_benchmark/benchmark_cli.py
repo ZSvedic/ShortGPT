@@ -1,5 +1,6 @@
 import click
 import time
+from typing import Optional
 import torch
 import datasets
 from datasets.utils import disable_progress_bar
@@ -134,14 +135,11 @@ def get_options_and_prompts(ds: datasets.Dataset, answer_cols: list,
         row_prompts.append(prompt_briefest_answer + input_text)
     return rows_options, row_prompts 
 
-def get_answer_idx(row) -> int:
+def get_answer_idx(row) -> Optional[int]:
     ''' Get the index of the answer from the answer string. '''
     idx = ord(row['answer'].strip()[0])-ord('A')
     max = len(row['options'])
-    if idx < 0 or idx >= max:
-        raise ValueError(f"Invalid answer index: {idx} for options: {row['options']}")
-    else:
-        return idx
+    return idx if idx>=0 and idx<max else None
 
 def process_dataset(tokenizer, model, answer_cols: list, answer_names: list,
                     ds: datasets.Dataset, out_jsonl:str,
@@ -167,10 +165,16 @@ def process_dataset(tokenizer, model, answer_cols: list, answer_names: list,
                 ids_min.append(get_answer_idx(row))
 
         big_chunk = big_chunk.map(
-            lambda _, idx: {'name-best': answer_names[ids_min[idx]]}, with_indices=True)
+            lambda _, idx: {'name-best': 
+                            answer_names[ids_min[idx]] if ids_min[idx] is not None # type: ignore
+                            else 'ERROR'}, 
+                            with_indices=True) 
         big_chunk = big_chunk.map(
-            lambda _, idx: {'answer-best': rows_options[idx][ids_min[idx]]}, with_indices=True)
-        big_chunk = big_chunk.select_columns(['id', 'question', 'name-best', 'answer-best'])
+            lambda _, idx: {'answer-best': 
+                            rows_options[idx][ids_min[idx]] if ids_min[idx] is not None # type: ignore
+                            else 'ERROR'}, 
+                            with_indices=True) 
+        big_chunk = big_chunk.select_columns(['question_id', 'question', 'name-best', 'answer-best'])
 
         all_chunks.append(big_chunk)
         
@@ -196,7 +200,7 @@ def print_summary(out_df: pd.DataFrame) -> None:
         Win_example=('answer-best', 'first'),
     )
     # Calculate winning percentages.
-    summary['Wins %'] = (summary['Wins'] / len(out_df)) * 100
+    summary['Wins %'] = round((summary['Wins']/len(out_df))*100, 1)
     # Reorder columns.
     summary = summary[['Wins', 'Wins %', 'Win_avg_length', 'Win_example']]
 

@@ -40,7 +40,7 @@ class TestEvaluateLLMFunction(unittest.TestCase):
         diffs = []
         for i, row in out_df.iterrows():
             ex_id, ex_best = expected[i]
-            self.assertEqual(row["id"], ex_id)
+            self.assertEqual(row["question_id"], ex_id)
             if row["name-best"] != ex_best:
                 diffs.append((ex_id, ex_best, row["name-best"]))
         if diffs:

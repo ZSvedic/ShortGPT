@@ -29,10 +29,10 @@
             "name": "2...benchmark_cli.py",
             "program": "${workspaceFolder}/2_brevity_benchmark/benchmark_cli.py",
             "args": [
-                "2_brevity_benchmark/in-short-answers.jsonl", 
-                "2_brevity_benchmark/out-best.jsonl", 
+                "2_brevity_benchmark/phi3_arena_brief_dataset.jsonl", 
+                "2_brevity_benchmark/phi3_arena_winners.jsonl", 
                 "microsoft/Phi-3-mini-4k-instruct",
-                "restart"
+                "continue"
             ],
             "type": "debugpy",
             "request": "launch",
