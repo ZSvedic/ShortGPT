@@ -223,5 +223,10 @@ def print_summary(out_df: pd.DataFrame) -> None:
     print(summary)
     print(f"All winners average length: {round(out_df['answer-best'].str.len().mean(), 1)}")
 
+    # Calculate and print average length for each model response column starting with "answer-"
+    avg_lengths = {col: round(out_df[col].str.len().mean(), 1) for col in out_df.columns 
+                   if col.startswith("answer-")}
+    print("Average column lengths:", avg_lengths)
+
 if __name__ == '__main__':
     main_click()
