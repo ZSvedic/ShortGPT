@@ -93,7 +93,8 @@ def process_dataset(tokenizer, model,
     ''' Process the 'lmsys/chatbot_arena_conversations' dataset in chunks and save 
     each chunk to a JSONL file. '''
 
-    ds = ds.select_columns(['question-id', 'conversation_a']) 
+    ds = ds.select_columns(['question_id', 'conversation_a']) 
+    ds = ds.rename_column('question_id', 'question-id')
     ds = ds.map(lambda example: {'question': example['conversation_a'][0]['content']}) 
     ds = ds.map(lambda example: {'prompt': normal_prompt + example['question']})
 

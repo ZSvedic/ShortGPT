@@ -190,7 +190,7 @@ def process_dataset(tokenizer, model, answer_cols: list, answer_names: list,
                             else 'ERROR'}, 
                             with_indices=True) 
         big_chunk = big_chunk.select_columns(
-            ['question_id', 'question', 'name-best', 'answer-best'] + answer_cols)
+            ['question-id', 'question', 'name-best', 'answer-best'] + answer_cols)
 
         all_chunks.append(big_chunk)
         
