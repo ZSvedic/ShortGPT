@@ -5,6 +5,8 @@ import torch
 import datasets
 from datasets.utils import disable_progress_bar
 import pandas as pd
+import sys
+sys.path.append('..')  # Add the parent directory to the Python path
 import utils.llm_utils as llm
 
 manual = '''CLI py app that inputs a JSONL file where each row has 2+ answers to a question and outputs a JSONL file that has the shortest answer to the question that still contains the non-trivial answer. App is called as:
