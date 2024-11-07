@@ -7,7 +7,11 @@ class TestEvaluateLLMFunction(unittest.TestCase):
         # Run the main_cli function on a small dataset.
         main_logic('2_brevity_benchmark/in-short-answers.jsonl', 
                    '2_brevity_benchmark/out-best.jsonl', 
-                   'microsoft/Phi-3-mini-4k-instruct', 
+                #    'arcee-ai/Llama-3.1-SuperNova-Lite',
+                   'microsoft/Phi-3-small-8k-instruct',
+                #    'microsoft/Phi-3-mini-4k-instruct', #Unfortuntely, this model fails to follow instructions.
+                #    'meta-llama/Meta-Llama-3.2-8B-Instruct',
+                #    'google/gemma-7b-it',
                    'restart')
         
         # Load the output file as Pandas DataFrame.

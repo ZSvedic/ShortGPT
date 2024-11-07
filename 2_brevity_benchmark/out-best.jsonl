@@ -1,20 +1,20 @@
-{"question_id":"101","question":"How much is 2+3?","name-best":"short","answer-best":"5"}
-{"question_id":"102","question":"What is the color of the sky?","name-best":"chatgpt","answer-best":"The sky is blue"}
-{"question_id":"103","question":"What is the capital of France?","name-best":"chatgpt","answer-best":"The capital of France is Paris."}
-{"question_id":"104","question":"What is the boiling point of water?","name-best":"chatgpt","answer-best":"The boiling point of water is 100 degrees Celsius."}
-{"question_id":"105","question":"Who wrote 'To Kill a Mockingbird'?","name-best":"short","answer-best":"Lee Harper"}
-{"question_id":"106","question":"What is the largest planet in our solar system?","name-best":"short","answer-best":"Jupiter"}
-{"question_id":"107","question":"What is the chemical symbol for gold?","name-best":"short","answer-best":"Au"}
-{"question_id":"108","question":"How many continents are there?","name-best":"short","answer-best":"7"}
-{"question_id":"109","question":"What is the speed of light?","name-best":"short","answer-best":"299,792 km\/s"}
-{"question_id":"110","question":"Who painted the Mona Lisa?","name-best":"short","answer-best":"Leonardo da Vinci"}
-{"question_id":"111","question":"What is the smallest prime number?","name-best":"short","answer-best":"2"}
-{"question_id":"112","question":"What is the main ingredient in guacamole?","name-best":"short","answer-best":"avocado"}
-{"question_id":"113","question":"What is the square root of 64?","name-best":"short","answer-best":"8"}
-{"question_id":"114","question":"What is the currency of Japan?","name-best":"short","answer-best":"yen"}
-{"question_id":"115","question":"Who discovered penicillin?","name-best":"short","answer-best":"Alexander Fleming"}
-{"question_id":"116","question":"What is the tallest mountain in the world?","name-best":"short","answer-best":"Mount Everest"}
-{"question_id":"117","question":"What is the primary language spoken in Brazil?","name-best":"short","answer-best":"Portuguese"}
-{"question_id":"118","question":"What is the freezing point of water?","name-best":"short","answer-best":"0\u00b0C"}
-{"question_id":"119","question":"What is the largest mammal?","name-best":"short","answer-best":"blue whale"}
-{"question_id":"120","question":"What is the capital of Japan?","name-best":"short","answer-best":"Tokyo"}
+{"question_id":"101","question":"How much is 2+3?","name-best":"short","answer-best":"5","answer-chatgpt":"Expression 2+3 is equal to 5.","answer-short":"5"}
+{"question_id":"102","question":"What is the color of the sky?","name-best":"chatgpt","answer-best":"The sky is blue","answer-chatgpt":"The sky is blue","answer-short":"sky"}
+{"question_id":"103","question":"What is the capital of France?","name-best":"chatgpt","answer-best":"The capital of France is Paris.","answer-chatgpt":"The capital of France is Paris.","answer-short":""}
+{"question_id":"104","question":"What is the boiling point of water?","name-best":"chatgpt","answer-best":"The boiling point of water is 100 degrees Celsius.","answer-chatgpt":"The boiling point of water is 100 degrees Celsius.","answer-short":"winner"}
+{"question_id":"105","question":"Who wrote 'To Kill a Mockingbird'?","name-best":"short","answer-best":"Harper Lee","answer-chatgpt":"'To Kill a Mockingbird' was written by Harper Lee.","answer-short":"Harper Lee"}
+{"question_id":"106","question":"What is the largest planet in our solar system?","name-best":"short","answer-best":"Jupiter","answer-chatgpt":"The largest planet in our solar system is Jupiter.","answer-short":"Jupiter"}
+{"question_id":"107","question":"What is the chemical symbol for gold?","name-best":"short","answer-best":"Au","answer-chatgpt":"The chemical symbol for gold is Au.","answer-short":"Au"}
+{"question_id":"108","question":"How many continents are there?","name-best":"short","answer-best":"7","answer-chatgpt":"There are seven continents.","answer-short":"7"}
+{"question_id":"109","question":"What is the speed of light?","name-best":"short","answer-best":"299,792 km\/s","answer-chatgpt":"The speed of light is approximately 299,792 kilometers per second.","answer-short":"299,792 km\/s"}
+{"question_id":"110","question":"Who painted the Mona Lisa?","name-best":"short","answer-best":"Leonardo da Vinci","answer-chatgpt":"The Mona Lisa was painted by Leonardo da Vinci.","answer-short":"Leonardo da Vinci"}
+{"question_id":"111","question":"What is the smallest prime number?","name-best":"short","answer-best":"2","answer-chatgpt":"The smallest prime number is 2.","answer-short":"2"}
+{"question_id":"112","question":"What is the main ingredient in guacamole?","name-best":"short","answer-best":"avocado","answer-chatgpt":"The main ingredient in guacamole is avocado.","answer-short":"avocado"}
+{"question_id":"113","question":"What is the square root of 64?","name-best":"short","answer-best":"8","answer-chatgpt":"The square root of 64 is 8.","answer-short":"8"}
+{"question_id":"114","question":"What is the currency of Japan?","name-best":"short","answer-best":"yen","answer-chatgpt":"The currency of Japan is the yen.","answer-short":"yen"}
+{"question_id":"115","question":"Who discovered penicillin?","name-best":"short","answer-best":"Alexander Fleming","answer-chatgpt":"Penicillin was discovered by Alexander Fleming.","answer-short":"Alexander Fleming"}
+{"question_id":"116","question":"What is the tallest mountain in the world?","name-best":"short","answer-best":"Mount Everest","answer-chatgpt":"The tallest mountain in the world is Mount Everest.","answer-short":"Mount Everest"}
+{"question_id":"117","question":"What is the primary language spoken in Brazil?","name-best":"short","answer-best":"Portuguese","answer-chatgpt":"The primary language spoken in Brazil is Portuguese.","answer-short":"Portuguese"}
+{"question_id":"118","question":"What is the freezing point of water?","name-best":"short","answer-best":"0\u00b0C","answer-chatgpt":"The freezing point of water is 0 degrees Celsius.","answer-short":"0\u00b0C"}
+{"question_id":"119","question":"What is the largest mammal?","name-best":"short","answer-best":"blue whale","answer-chatgpt":"The largest mammal is the blue whale.","answer-short":"blue whale"}
+{"question_id":"120","question":"What is the capital of Japan?","name-best":"short","answer-best":"Tokyo","answer-chatgpt":"The capital of Japan is Tokyo.","answer-short":"Tokyo"}
