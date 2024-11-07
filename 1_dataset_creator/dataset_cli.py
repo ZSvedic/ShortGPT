@@ -93,7 +93,7 @@ def process_dataset(tokenizer, model,
     ''' Process the 'lmsys/chatbot_arena_conversations' dataset in chunks and save 
     each chunk to a JSONL file. '''
 
-    ds = ds.select_columns(['question_id', 'conversation_a']) 
+    ds = ds.select_columns(['question-id', 'conversation_a']) 
     ds = ds.map(lambda example: {'question': example['conversation_a'][0]['content']}) 
     ds = ds.map(lambda example: {'prompt': normal_prompt + example['question']})
 
@@ -105,13 +105,13 @@ def process_dataset(tokenizer, model,
     for norm_c in llm.call_variable_chunks(
         ds, tokenizer, model, 100, 5000, normal_max_tokens_hard):
 
-        norm_c = norm_c.select_columns(['question_id', 'question', 'answer'])
+        norm_c = norm_c.select_columns(['question-id', 'question', 'answer'])
         norm_c = norm_c.rename_column('answer', 'answer-normal')
         norm_c = norm_c.map(lambda example: {'prompt': get_brief_prompt(example)})
         
         for brief_c in llm.call_variable_chunks(
             norm_c, tokenizer, model, 100, 5000, brief_max_tokens_hard):
-            brief_c = brief_c.select_columns(['question_id', 'question', 'answer', 'answer-normal'])
+            brief_c = brief_c.select_columns(['question-id', 'question', 'answer', 'answer-normal'])
             brief_c = brief_c.rename_column('answer', 'answer-short')
             with open(out_jsonl, 'ab') as f:
                 brief_c.to_json(f, lines=True)
