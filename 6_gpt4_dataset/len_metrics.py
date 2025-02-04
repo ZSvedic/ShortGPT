@@ -1,25 +1,31 @@
 import torch
 import transformers as hftf
 import sys
+import os
 
 if len(sys.argv) > 1:
-    model_name = sys.argv[1]
+    base_model = sys.argv[1]
+    model_name = sys.argv[2]
 else:
-    model_name = 'unsloth/zephyr-sft-bnb-4bit'
-    # model_name = 'meta-llama/Llama-2-7b-hf' # Will fail because of the missing chat template.
+    base_model = model_name = 'unsloth/zephyr-sft-bnb-4bit'
 
 def load_tokenizer_model(model_name):
-    print(f"========== Model: {model_name} ==========\n")
+    print(f"===== Base model: {base_model}")
+    print(f"===== Model: {model_name}")
 
     # Load tokenizer
     tokenizer = hftf.AutoTokenizer.from_pretrained(
-        model_name, model_max_length=128, padding_side="left", trust_remote_code=True)
+        base_model, model_max_length=128, padding_side="left", trust_remote_code=True)
     tokenizer.pad_token = tokenizer.eos_token
     # print("Chat template: " + tokenizer.chat_template)
 
-    # Load model
+    # Load model in 2 steps: base first, then checkpoint
     model = hftf.AutoModelForCausalLM.from_pretrained(
-                model_name, torch_dtype=torch.float16, device_map="auto", trust_remote_code=True)
+                base_model, torch_dtype=torch.float16, device_map="auto", trust_remote_code=True)
+    checkpoint_path = os.path.join(model_name, "policy.pt")
+    checkpoint = torch.load(checkpoint_path, map_location="cuda:0")
+    model.load_state_dict(checkpoint)
+
     print(f'Allocated GPU memory: {torch.cuda.memory_allocated() / (1024*1024):,.1f} MB')
 
     return tokenizer, model
